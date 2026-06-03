@@ -47,11 +47,11 @@
             <!-- Input file caché pour l'importation -->
             <input type="file" id="file-import-input" accept=".json" style="display: none;">
             
-            <button id="btn-email-client" class="btn btn-secondary btn-sm" title="Préparer l'envoi de l'e-mail au client avec le modèle rédigé">
-                📧 Envoyer par Email
+            <button id="btn-download-pdf" class="btn btn-secondary btn-sm" title="Télécharger le compte rendu au format PDF">
+                📥 Télécharger
             </button>
-            <button id="btn-print" class="btn btn-primary btn-sm" title="Générer le PDF final du compte rendu (Ctrl+P)">
-                🖨️ Générer PDF / Imprimer
+            <button id="btn-print" class="btn btn-primary btn-sm" title="Imprimer le compte rendu (Ctrl+P)">
+                🖨️ Imprimer
             </button>
         </div>
     </header>
@@ -78,10 +78,7 @@
                             <label for="meta-client-name">Nom du Client</label>
                             <input type="text" id="meta-client-name" class="form-control" placeholder="M. et Mme Dupont...">
                         </div>
-                        <div class="form-group">
-                            <label for="meta-client-email">Email du Client</label>
-                            <input type="email" id="meta-client-email" class="form-control" placeholder="client@exemple.com...">
-                        </div>
+
                         <div class="form-group">
                             <label for="meta-visit-date">Date de Visite</label>
                             <input type="date" id="meta-visit-date" class="form-control">
@@ -247,7 +244,7 @@
                     <span>📄 Aperçu Temps Réel</span>
                     <span id="preview-page-count-badge" class="badge-page-count">~ 1 page</span>
                 </span>
-                <span style="font-size: 0.75rem; color: var(--color-secondary-light);">💡 Option : désactivez les "En-têtes et pieds de page" dans la boîte d'impression</span>
+
             </div>
             
             <div id="preview-scroll-container" class="preview-scroll">
@@ -286,36 +283,6 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-outline btn-sm btn-close-modal">Fermer</button>
-            </div>
-        </div>
-    </div>
- 
-    <!-- Fenêtre Modale : Préparation de l'Email -->
-    <div id="email-modal" class="modal-overlay">
-        <div class="modal-container" style="max-width: 600px;">
-            <div class="modal-header">
-                <h3>📧 Envoyer le compte rendu par e-mail</h3>
-                <button class="modal-close">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
-                <div class="form-group">
-                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--color-primary);">Destinataire (Email Client)</label>
-                    <input type="text" id="email-modal-to" class="form-control">
-                </div>
- 
-                <div class="form-group">
-                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--color-primary);">Objet du mail</label>
-                    <input type="text" id="email-modal-subject" class="form-control">
-                </div>
- 
-                <div class="form-group">
-                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--color-primary);">Corps de l'e-mail</label>
-                    <textarea id="email-modal-body" class="form-control" style="height: 180px; font-size: 0.8rem; line-height: 1.4; resize: vertical;"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                <button id="btn-email-modal-send" class="btn btn-primary btn-sm">🚀 Envoyer l'e-mail</button>
                 <button class="btn btn-outline btn-sm btn-close-modal">Fermer</button>
             </div>
         </div>

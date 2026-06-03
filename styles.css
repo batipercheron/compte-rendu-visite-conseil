@@ -676,7 +676,7 @@ select.form-control {
     background-color: #ffffff; /* Fond blanc pur pour impression propre */
     width: 210mm; /* Largeur A4 */
     height: 297mm; /* Hauteur A4 fixe */
-    padding: 20mm 15mm;
+    padding: 12mm 15mm 8mm 15mm; /* 12mm haut, 15mm côtés, 8mm bas */
     box-shadow: var(--shadow-lg), 0 20px 40px rgba(0, 0, 0, 0.3);
     border-radius: 2px;
     position: relative;
@@ -1475,7 +1475,7 @@ select.form-control {
         flex-direction: column !important;
         width: 210mm !important;
         height: 297mm !important;
-        padding: 20mm 15mm !important;
+        padding: 12mm 15mm 8mm 15mm !important;
         box-sizing: border-box !important;
         margin: 0 !important;
         box-shadow: none !important;
@@ -1523,4 +1523,28 @@ select.form-control {
     .doc-section {
         margin-bottom: 0 !important; /* L'espacement est géré par la grille flex ou le flux de paragraphe */
     }
+}
+
+/* 
+   STYLES SPECIFIQUES POUR html2pdf 
+   html2canvas ne lit pas @media print, on ajoute une classe temporaire 
+*/
+body.pdf-exporting #document-preview-target {
+    gap: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+}
+
+body.pdf-exporting .document-sheet {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    /* page-break-after est géré par jsPDF/html2pdf */
+}
+
+body.pdf-exporting .doc-section,
+body.pdf-exporting .doc-section-text {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
 }
