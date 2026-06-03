@@ -84,7 +84,7 @@ function initApp() {
     }
 
     loadCurrentProjectIntoUI();
-    showToast('Application prête et chargée en local', 'info');
+    showToast('Application prête (historique des comptes rendus chargé)', 'info');
 }
 
 function loadProjectsFromLocalStorage() {
@@ -298,6 +298,37 @@ function setupEventListeners() {
     if (btnEmailClient) {
         btnEmailClient.addEventListener('click', handleEmailClient);
     }
+
+    // Boutons de copie dans la modale d'e-mail
+    const copyConfigs = [
+        { btnId: 'btn-copy-email-to', inputId: 'email-modal-to', label: "L'adresse e-mail" },
+        { btnId: 'btn-copy-email-bcc', inputId: 'email-modal-bcc', label: "L'adresse de copie cachée" },
+        { btnId: 'btn-copy-email-subject', inputId: 'email-modal-subject', label: "L'objet de l'e-mail" },
+        { btnId: 'btn-copy-email-body', inputId: 'email-modal-body', label: "Le corps de l'e-mail" }
+    ];
+
+    copyConfigs.forEach(cfg => {
+        const btn = document.getElementById(cfg.btnId);
+        const input = document.getElementById(cfg.inputId);
+        if (btn && input) {
+            btn.addEventListener('click', () => {
+                navigator.clipboard.writeText(input.value)
+                    .then(() => {
+                        showToast(`${cfg.label} a été copié dans le presse-papiers !`, 'success');
+                    })
+                    .catch(err => {
+                        console.error('Erreur de copie : ', err);
+                        showToast('Impossible de copier automatiquement.', 'error');
+                    });
+            });
+        }
+    });
+
+    // Bouton mailto de secours dans la modale d'e-mail
+    const btnEmailModalMailto = document.getElementById('btn-email-modal-mailto');
+    if (btnEmailModalMailto) {
+        btnEmailModalMailto.addEventListener('click', handleEmailMailtoFallback);
+    }
 }
 
 /* ==========================================================================
@@ -490,10 +521,15 @@ function deleteBlock(blockId, e) {
         
         renderBlockList();
         
-        // Si on a supprimé le bloc actif, on sélectionne le premier bloc restant
+        // Si on a supprimé le bloc actif, on sélectionne le premier bloc restant ou on vide l'éditeur
         if (appState.activeBlockId === blockId) {
             if (proj.blocks.length > 0) {
                 selectBlock(proj.blocks[0].id);
+            } else {
+                appState.activeBlockId = null;
+                document.getElementById('active-block-title-display').innerText = 'Aucun bloc';
+                document.getElementById('editor-content').value = '';
+                document.getElementById('editor-block-status').value = 'empty';
             }
         }
         
@@ -502,7 +538,7 @@ function deleteBlock(blockId, e) {
     }
 }
 
-// Ordonner les blocs (monter/descendre)
+// Ordonner les blocs (monter/descendre) avec rebouclage (wrap around)
 function moveBlock(blockId, direction, e) {
     if (e) e.stopPropagation();
 
@@ -510,8 +546,20 @@ function moveBlock(blockId, direction, e) {
     const index = proj.blocks.findIndex(b => b.id === blockId);
     if (index === -1) return;
 
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= proj.blocks.length) return; // Limites atteintes
+    if (proj.blocks.length <= 1) return; // Rien à déplacer
+
+    let targetIndex;
+    if (direction === 'up') {
+        targetIndex = index - 1;
+        if (targetIndex < 0) {
+            targetIndex = proj.blocks.length - 1;
+        }
+    } else {
+        targetIndex = index + 1;
+        if (targetIndex >= proj.blocks.length) {
+            targetIndex = 0;
+        }
+    }
 
     // Échange des éléments dans le tableau
     const temp = proj.blocks[index];
@@ -603,8 +651,8 @@ function renderBlockList() {
             </div>
             <div class="block-item-actions">
                 <button class="block-item-btn btn-rename-block" title="Renommer">✏️</button>
-                <button class="block-item-btn btn-move-up" title="Monter" ${index === 0 ? 'disabled' : ''}>▲</button>
-                <button class="block-item-btn btn-move-down" title="Descendre" ${index === proj.blocks.length - 1 ? 'disabled' : ''}>▼</button>
+                <button class="block-item-btn btn-move-up" title="Monter">▲</button>
+                <button class="block-item-btn btn-move-down" title="Descendre">▼</button>
                 <button class="block-item-btn btn-delete-block" title="Supprimer">✖</button>
             </div>
         `;
@@ -1712,30 +1760,56 @@ function handleEmailClient() {
     const proj = getActiveProject();
     if (!proj) return;
 
-    const email = (proj.clientEmail || '').trim();
-    if (!email) {
-        showToast("Veuillez d'abord renseigner l'adresse email du client dans les informations.", "warning");
-        return;
+    // Récupérer et formater la date
+    let formattedDate = 'Non renseignée';
+    if (proj.visitDate) {
+        const parts = proj.visitDate.split('-');
+        if (parts.length === 3) {
+            formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
     }
 
-    const clientName = proj.clientName || 'Client';
-    const subject = encodeURIComponent(`Compte-rendu de visite conseil - EURL Bâti Percheron`);
+    const email = (proj.clientEmail || '').trim();
+    if (!email) {
+        showToast("Note : l'adresse email du client n'est pas renseignée. Vous pourrez la copier/coller ou la saisir manuellement.", "warning");
+    }
+
+    const clientName = proj.clientName || 'Madame, Monsieur';
+    const subjectText = `Compte-rendu de visite conseil - EURL Bâti Percheron`;
     
     const bodyText = `Bonjour ${clientName},\n\n` +
-        `Veuillez trouver ci-joint le compte-rendu de la visite conseil effectuée par Fabrice Mauger.\n\n` +
-        `[PENSEZ À ATTACHER LE FICHIER PDF GÉNÉRÉ ICI]\n\n` +
+        `Veuillez trouver ci-joint le compte-rendu de la visite conseil effectuée le ${formattedDate}.\n\n` +
         `Nous restons à votre entière disposition pour tout renseignement complémentaire.\n\n` +
         `Bien cordialement,\n\n` +
         `Fabrice Mauger\n` +
         `EURL BÂTI PERCHERON\n` +
-        `batipercheron.fr`;
-        
-    const body = encodeURIComponent(bodyText);
-    const bccEmail = "contact@batipercheron.fr";
-    
-    window.location.href = `mailto:${email}?bcc=${bccEmail}&subject=${subject}&body=${body}`;
-    showToast("Votre messagerie s'ouvre avec le mail pré-rempli. Pensez à y joindre le PDF.", "success");
+        `06 20 62 14 05\n` +
+        `www.batipercheron.fr`;
+
+    // Remplir les inputs de la modale
+    document.getElementById('email-modal-to').value = email;
+    document.getElementById('email-modal-bcc').value = "contact@batipercheron.fr";
+    document.getElementById('email-modal-subject').value = subjectText;
+    document.getElementById('email-modal-body').value = bodyText;
+
+    // Afficher la modale
+    const modal = document.getElementById('email-modal');
+    if (modal) {
+        modal.classList.add('active');
+        showToast("Fenêtre de préparation de l'e-mail ouverte.", "info");
+    }
 }
+
+function handleEmailMailtoFallback() {
+    const to = document.getElementById('email-modal-to').value;
+    const bcc = document.getElementById('email-modal-bcc').value;
+    const subject = encodeURIComponent(document.getElementById('email-modal-subject').value);
+    const body = encodeURIComponent(document.getElementById('email-modal-body').value);
+    
+    window.location.href = `mailto:${to}?bcc=${bcc}&subject=${subject}&body=${body}`;
+    showToast("Tentative d'ouverture de votre logiciel de messagerie par défaut...", "info");
+}
+
 
 function cleanContentFormatting(text) {
     if (!text) return '';

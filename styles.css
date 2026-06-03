@@ -252,7 +252,8 @@ select.form-control {
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
-    width: 80%;
+    flex: 1;
+    min-width: 0;
 }
 
 .block-title {
@@ -282,6 +283,7 @@ select.form-control {
 .block-item-actions {
     display: flex;
     gap: 0.2rem;
+    flex-shrink: 0;
 }
 
 .block-item-btn {
