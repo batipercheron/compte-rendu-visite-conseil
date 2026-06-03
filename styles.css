@@ -656,10 +656,12 @@ select.form-control {
 .preview-scroll {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden; /* Empêche le défilement horizontal */
     padding: 2.5rem 1.5rem;
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    container-type: inline-size; /* Pour zoom dynamique */
 }
 
 #document-preview-target {
@@ -1550,51 +1552,19 @@ body.pdf-exporting .doc-section-text {
 }
 
 /* ==========================================================================
-   RESPONSIVE DESIGN (S'adapte aux demi-fenêtres et petits écrans)
+   ZOOM DYNAMIQUE DE L'APERÇU (Adaptation aux demi-fenêtres sans empiler)
    ========================================================================== */
 
-/* Écrans moyens (ex: iPad paysage, petite fenêtre de MacBook) */
-@media (max-width: 1200px) {
-    .app-container {
-        flex-wrap: wrap;
-        overflow-y: auto;
-        overflow-x: hidden;
-        align-content: flex-start;
-    }
-    
-    .sidebar {
-        flex: 1 1 100% !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        height: 35vh !important; /* La barre latérale passe en haut */
-        border-right: none !important;
-        border-bottom: 2px solid var(--color-border);
-    }
-    
-    .workspace {
-        flex: 1 1 350px !important;
-        height: calc(65vh - var(--header-height)) !important; /* Occupe le reste avec l'aperçu */
-        border-right: 2px solid var(--color-border) !important;
-        border-bottom: none !important;
-    }
-    
-    .preview {
-        flex: 1.2 1 400px !important;
-        height: calc(65vh - var(--header-height)) !important;
-    }
-}
+/* La page fait ~800px de large. On réduit le zoom progressivement selon la place dispo */
+@container (max-width: 850px) { #document-preview-target { zoom: 0.9; } }
+@container (max-width: 750px) { #document-preview-target { zoom: 0.8; } }
+@container (max-width: 650px) { #document-preview-target { zoom: 0.7; } }
+@container (max-width: 550px) { #document-preview-target { zoom: 0.6; } }
+@container (max-width: 450px) { #document-preview-target { zoom: 0.5; } }
+@container (max-width: 350px) { #document-preview-target { zoom: 0.4; } }
+@container (max-width: 250px) { #document-preview-target { zoom: 0.3; } }
 
-/* Petits écrans (ex: demi-fenêtre stricte, mobile) */
-@media (max-width: 768px) {
-    .workspace {
-        flex: 1 1 100% !important;
-        border-right: none !important;
-        border-bottom: 2px solid var(--color-border) !important;
-        height: 50vh !important; /* S'empile complètement */
-    }
-    
-    .preview {
-        flex: 1 1 100% !important;
-        height: 70vh !important;
-    }
+/* On s'assure que le zoom ne s'applique pas pendant la création du vrai PDF ! */
+body.pdf-exporting #document-preview-target {
+    zoom: 1 !important;
 }
