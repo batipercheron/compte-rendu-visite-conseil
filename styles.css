@@ -520,6 +520,8 @@ select.form-control {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    flex: 1;
+    min-height: 0;
 }
 
 .editor-section label {
@@ -545,6 +547,11 @@ select.form-control {
     color: var(--color-text);
     resize: vertical;
     transition: var(--transition);
+}
+
+#editor-content {
+    flex: 1;
+    resize: none; /* Remplissage automatique de toute la hauteur disponible */
 }
 
 .editor-textarea:focus {

@@ -298,6 +298,66 @@
             </div>
         </div>
     </div>
+ 
+    <!-- Fenêtre Modale : Préparation de l'Email -->
+    <div id="email-modal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>📧 Préparer l'envoi de l'e-mail</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+                <p style="font-size: 0.85rem; color: var(--color-text-light); line-height: 1.4; margin-bottom: 0.5rem;">
+                    Les applications web dans le navigateur ne peuvent pas attacher automatiquement de fichiers PDF à vos e-mails pour des raisons de sécurité. Suivez ces étapes simples pour envoyer le rapport à votre client :
+                </p>
+                
+                <div style="background-color: #fdfbf7; border-left: 4px solid var(--color-secondary); padding: 0.75rem 1rem; border-radius: var(--border-radius-sm); font-size: 0.8rem; line-height: 1.5; color: var(--color-text-light);">
+                    <strong>Procédure :</strong><br>
+                    1. Si ce n'est pas déjà fait, cliquez sur <strong>🖨️ Générer PDF / Imprimer</strong> (choisir <em>Enregistrer au format PDF</em>).<br>
+                    2. Ouvrez votre boîte mail <strong>Orange</strong> (ou votre messagerie habituelle) dans votre navigateur.<br>
+                    3. Créez un nouveau message, puis copiez-collez les informations ci-dessous et <strong>attachez votre PDF</strong>.
+                </div>
+ 
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.2rem;">
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--color-primary);">Destinataire (Email Client)</span>
+                        <button class="btn btn-outline btn-sm" id="btn-copy-email-to" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">📋 Copier</button>
+                    </label>
+                    <input type="text" id="email-modal-to" class="form-control" readonly>
+                </div>
+ 
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.2rem;">
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--color-primary);">Copie cachée (BCC)</span>
+                        <button class="btn btn-outline btn-sm" id="btn-copy-email-bcc" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">📋 Copier</button>
+                    </label>
+                    <input type="text" id="email-modal-bcc" class="form-control" value="contact@batipercheron.fr" readonly>
+                </div>
+ 
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.2rem;">
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--color-primary);">Objet du mail</span>
+                        <button class="btn btn-outline btn-sm" id="btn-copy-email-subject" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">📋 Copier</button>
+                    </label>
+                    <input type="text" id="email-modal-subject" class="form-control" readonly>
+                </div>
+ 
+                <div class="form-group">
+                    <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.2rem;">
+                        <span style="font-size: 0.75rem; font-weight: 600; color: var(--color-primary);">Corps de l'e-mail</span>
+                        <button class="btn btn-outline btn-sm" id="btn-copy-email-body" style="padding: 0.15rem 0.4rem; font-size: 0.65rem;">📋 Copier le texte</button>
+                    </label>
+                    <textarea id="email-modal-body" class="form-control" style="height: 140px; font-size: 0.8rem; line-height: 1.4; resize: none;" readonly></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                <button id="btn-email-modal-mailto" class="btn btn-secondary btn-sm" title="Tenter d'ouvrir l'application de messagerie par défaut de votre ordinateur">
+                    ✉️ Ouvrir mon logiciel de messagerie
+                </button>
+                <button class="btn btn-outline btn-sm btn-close-modal">Fermer</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Conteneur global de Notifications Toast -->
     <div id="toast-notification-container" class="toast-container"></div>
