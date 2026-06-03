@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bati Percheron | Générateur de Comptes Rendus de Visite Conseil</title>
+    
+    <!-- Google Fonts pour correspondre au site officiel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    
+    <!-- Feuille de style locale -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Librairie d'extraction de texte de fichiers Word (.docx) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+</head>
+<body>
+
+    <!-- ==========================================================================
+         EN-TÊTE DE L'APPLICATION (GLOBAL HEADER)
+         ========================================================================== -->
+    <header class="app-header">
+        <div class="header-brand">
+            <div class="header-title-container">
+                <h1 style="font-family: var(--font-serif); font-size: 1.4rem; letter-spacing: 2px; color: var(--color-primary); margin-bottom: 0.15rem;">BATI PERCHERON</h1>
+                <p style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; color: var(--color-text-light); font-family: var(--font-sans); margin-top: 0.15rem;">Visites Conseils et Comptes Rendus</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button id="btn-new-project" class="btn btn-secondary btn-sm" title="Créer un nouveau compte rendu">
+                ➕ Nouveau
+            </button>
+            <button id="btn-open-projects-list" class="btn btn-secondary btn-sm" title="Consulter l'historique des comptes rendus dans la mémoire locale du navigateur">
+                📁 Historique / Mémoire locale
+            </button>
+            <button id="btn-export-json" class="btn btn-secondary btn-sm" title="Télécharger le fichier de sauvegarde locale pour archivage dans le dossier client (.json)">
+                💾 Enregistrer en fichier local (.json)
+            </button>
+            <button id="btn-import-trigger" class="btn btn-secondary btn-sm" title="Charger une sauvegarde .json existante depuis votre ordinateur">
+                📥 Ouvrir un fichier local (.json)
+            </button>
+            <!-- Input file caché pour l'importation -->
+            <input type="file" id="file-import-input" accept=".json" style="display: none;">
+            
+            <button id="btn-email-client" class="btn btn-secondary btn-sm" title="Préparer l'envoi de l'e-mail au client avec le modèle rédigé">
+                📧 Envoyer par Email
+            </button>
+            <button id="btn-print" class="btn btn-primary btn-sm" title="Générer le PDF final du compte rendu (Ctrl+P)">
+                🖨️ Générer PDF / Imprimer
+            </button>
+        </div>
+    </header>
+
+    <!-- ==========================================================================
+         CONTAINER DE L'APPLICATION (BODY DASHBOARD)
+         ========================================================================== -->
+    <main class="app-container">
+        
+        <!-- COLONNE 1 : METADONNEES & SOMMAIRE (GAUCHE) -->
+        <aside class="sidebar">
+            <div class="sidebar-scroll">
+                
+                <!-- Section : Configuration API Gemini -->
+                <div class="api-config-card">
+                    <div class="api-config-header" onclick="document.getElementById('api-config-body-div').style.display = document.getElementById('api-config-body-div').style.display === 'none' ? 'flex' : 'none'">
+                        <span>⚙️ Configuration IA (Gemini)</span>
+                        <span style="font-size:0.7rem; color:var(--color-secondary);">[Déplier/Plier]</span>
+                    </div>
+                    <div id="api-config-body-div" class="api-config-body" style="display: none;">
+                        <span style="font-size:0.7rem; color:var(--color-text-light); line-height:1.3;">Entrez votre clé API Gemini pour activer la rédaction automatique par IA :</span>
+                        <input type="password" id="gemini-api-key" class="form-control" style="padding: 0.35rem 0.5rem; font-size: 0.8rem;" placeholder="Clé API Gemini...">
+                        <button id="btn-save-api-key" class="btn btn-primary btn-sm" style="padding: 0.35rem; font-size: 0.75rem; width:100%;">Enregistrer la clé</button>
+                        <a href="https://aistudio.google.com/" target="_blank" style="font-size:0.65rem; color:var(--color-accent); text-align:center; text-decoration:underline;">Créer une clé gratuite Google AI</a>
+                    </div>
+                </div>
+                
+                <!-- Section : Métadonnées du Projet -->
+                <section class="sidebar-section-card">
+                    <h3 class="sidebar-section-title" onclick="toggleSidebarSection('meta-group-container', 'meta-fold-arrow')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; user-select:none;">
+                        <span>📋 Informations</span>
+                        <span id="meta-fold-arrow" class="fold-arrow" style="font-size:0.75rem; transition: var(--transition);">▼</span>
+                    </h3>
+                    <div id="meta-group-container" class="meta-group">
+                        <div class="form-group">
+                            <label for="meta-client-name">Nom du Client</label>
+                            <input type="text" id="meta-client-name" class="form-control" placeholder="M. et Mme Dupont...">
+                        </div>
+                        <div class="form-group">
+                            <label for="meta-client-email">Email du Client</label>
+                            <input type="email" id="meta-client-email" class="form-control" placeholder="client@exemple.com...">
+                        </div>
+                        <div class="form-group">
+                            <label for="meta-visit-date">Date de Visite</label>
+                            <input type="date" id="meta-visit-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="meta-visit-address">Adresse de la Visite</label>
+                            <input type="text" id="meta-visit-address" class="form-control" placeholder="Adresse du bien visité...">
+                        </div>
+                        <div class="form-group">
+                            <label for="meta-consultant">Conseiller</label>
+                            <input type="text" id="meta-consultant" class="form-control" value="Fabrice Mauger - EURL BATI PERCHERON">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section : Sommaire / Outline -->
+                <section class="sidebar-section-card" style="flex: 1; display: flex; flex-direction: column; min-height: 250px;">
+                    <h3 class="sidebar-section-title" style="display:flex; justify-content:space-between; align-items:center; user-select:none;">
+                        <span onclick="toggleSidebarSection('sommaire-container', 'sommaire-fold-arrow')" style="cursor:pointer; display:flex; align-items:center; gap:0.4rem;">
+                            <span>📂 Sommaire</span>
+                            <span id="sommaire-fold-arrow" class="fold-arrow" style="font-size:0.75rem; transition: var(--transition);">▼</span>
+                        </span>
+                        <button id="btn-add-block" class="btn-text" style="font-size:0.8rem; font-weight:bold; cursor:pointer;" title="Ajouter un bloc personnalisé">+ Ajouter</button>
+                    </h3>
+                    <div id="sommaire-container" style="flex: 1; display: flex; flex-direction: column; overflow: hidden; transition: var(--transition);">
+                        <div id="app-block-list" class="block-list" style="flex: 1; overflow-y: auto;">
+                            <!-- Rempli dynamiquement en JS (renderBlockList) -->
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+            
+            <!-- Pied de la barre latérale -->
+            <div class="sidebar-footer">
+                <span style="font-size: 0.75rem; color: var(--color-text-light); font-weight: 500;">Projet Actif :</span>
+                <div id="current-project-sidebar-title" style="font-size: 0.85rem; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-primary);">Nouveau Projet</div>
+            </div>
+        </aside>
+
+        <!-- COLONNE 2 : ZONE DE TRAVAIL & ÉDITION (MILIEU) -->
+        <section class="workspace" style="position: relative;">
+            
+            <!-- Écran de chargement IA -->
+            <div id="ai-loading-overlay" class="loading-overlay">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Analyse et Rédaction par l'IA Gemini...</div>
+                <div class="loading-subtext">L'IA structure votre note vocale en style d'expert en bâtiment. Cette opération dure environ 10 à 15 secondes.</div>
+            </div>
+            
+            <!-- Onglets de la zone de travail -->
+            <nav class="workspace-tabs">
+                <button class="tab-btn active" data-tab="edit">
+                    📝 Éditeur par Blocs
+                </button>
+                <button class="tab-btn" data-tab="vocal">
+                    🎙️ Note Vocale & Analyse
+                </button>
+            </nav>
+
+            <!-- Conteneur des contenus d'onglets -->
+            <div class="tab-content-container">
+                
+                <!-- ONGLET EDIT : ÉDITION DES BLOCS (ACTIF PAR DÉFAUT) -->
+                <div id="tab-pane-edit" class="tab-pane active">
+                    
+                    <div class="editor-header">
+                        <div class="editor-header-title">
+                            <h2 id="active-block-title-display">Titre du bloc</h2>
+                            <span>Rédigez ci-dessous les observations sur site et vos conseils techniques.</span>
+                        </div>
+                        <div class="editor-header-actions">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <label for="editor-block-status" style="font-size: 0.75rem; font-weight: bold; margin-bottom: 0;">Statut :</label>
+                                <select id="editor-block-status" class="form-control" style="width: 120px; padding: 0.35rem 0.5rem; font-size: 0.8rem;">
+                                    <option value="empty">Vide</option>
+                                    <option value="progress">En cours</option>
+                                    <option value="done">Terminé</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="editor-body">
+                        
+                        <!-- Saisie unique du contenu du bloc -->
+                        <div class="editor-section">
+                            <label for="editor-content" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                                <span>
+                                    ✍️ Texte du Bloc
+                                    <span style="font-size: 0.7rem; font-weight: normal; color: var(--color-text-light); text-transform: none; display:block; margin-top:2px;">(Rédigez le contenu ou dictez une consigne de modification par l'IA)</span>
+                                </span>
+                                <button class="btn-mic" id="btn-mic-content" title="Dicter une consigne de modification ou correction par l'IA" type="button">🎙️</button>
+                            </label>
+                            <textarea id="editor-content" class="editor-textarea" placeholder="Saisissez vos observations et conseils pour ce bloc... (ou utilisez le bouton micro pour dicter des corrections par l'IA)."></textarea>
+                        </div>
+
+                        <!-- Suggestion de modification par l'IA (masqué par défaut) -->
+                        <div id="ia-suggestion-container" class="ia-suggestion-card" style="display: none;">
+                            <div class="ia-suggestion-header">
+                                <span>✨ Proposition de modification par l'IA :</span>
+                            </div>
+                            <textarea id="editor-ia-suggestion" class="editor-textarea ia-suggestion-textarea" placeholder="La proposition de l'IA apparaîtra ici..." readonly></textarea>
+                            <div class="ia-suggestion-actions">
+                                <button id="btn-accept-ia-suggestion" class="btn btn-primary btn-sm" style="background-color: var(--color-success); border-color: var(--color-success);" type="button">
+                                    ✔️ Valider et Remplacer
+                                </button>
+                                <button id="btn-reject-ia-suggestion" class="btn btn-outline btn-sm" style="color: var(--color-error); border-color: var(--color-error);" type="button">
+                                    ❌ Ignorer
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- ONGLET VOCAL : IMPORTATION & DISPATCHING DE LA NOTE VOCALE -->
+                <div id="tab-pane-vocal" class="tab-pane">
+                    <div class="vocal-pane-content">
+                        
+                        <div style="display:flex; gap:1rem; align-items:stretch; background-color: #fdfbf7; border-left: 4px solid var(--color-secondary); padding: 0.75rem 1rem; border-radius: var(--border-radius-sm); margin-bottom: 1rem;">
+                            <div class="vocal-instructions" style="flex:1; border:none; padding:0; background:none; margin:0; font-size: 0.85rem; line-height: 1.5; display: flex; flex-direction: column; gap: 0.5rem;">
+                                <div><strong>💡 Comment ça marche ?</strong> Chargez votre fichier de transcription ou collez-le dans la zone de texte. Optionnellement, ajoutez des consignes de guidage pour l'IA ci-dessous. Ensuite, cliquez sur le bouton à droite.</div>
+                                <div style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
+                                    <input type="text" id="ai-guidelines" class="form-control" style="flex: 1; padding: 0.4rem 0.6rem; font-size: 0.85rem;" placeholder="Consignes particulières (ex : insister sur les granges, ignorer la toiture...)">
+                                    <button class="btn-mic" id="btn-mic-guidelines" title="Dicter des consignes de rédaction pour l'IA" type="button" style="width: 32px; height: 32px; min-width: 32px;">🎙️</button>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center;">
+                                <button id="btn-ai-generate" class="btn btn-primary" style="background-color:var(--color-accent); padding: 0.75rem 1.25rem; font-size:0.9rem; font-weight:bold; line-height:1.2; box-shadow: var(--shadow-sm);" title="Lancer la rédaction et la structuration automatique du compte rendu par l'IA Gemini" type="button">
+                                    🪄 Rédiger par l'IA
+                                </button>
+                            </div>
+                        </div>
+
+                        <div style="flex: 1; display: flex; gap: 1rem; overflow: hidden; min-height: 0;">
+                            
+                            <!-- Zone de texte transcription brute -->
+                            <div class="transcription-area" style="flex: 1; width: 100%;">
+                                <div style="background-color:var(--color-primary-light); padding:0.4rem 0.75rem; border-bottom:1px solid var(--color-border); display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:0.8rem; font-weight:600; color:var(--color-primary); text-transform:uppercase;">Transcription de la Note Vocale</span>
+                                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                                        <!-- Import de fichier -->
+                                        <button class="btn-mic" id="btn-import-transcription-trigger" title="Importer un fichier Word (.docx) ou Texte (.txt)" type="button" style="width:24px; height:24px; font-size:0.8rem;">📂</button>
+                                        <input type="file" id="transcription-file-input" accept=".docx,.txt" style="display:none;">
+                                    </div>
+                                </div>
+                                <textarea id="transcription-textarea" class="transcription-textarea" placeholder="Collez votre texte ou cliquez sur le bouton ci-dessus pour importer un document..."></textarea>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- COLONNE 3 : PREVISUALISATION DU RAPPORT A4 (DROITE) -->
+        <section class="preview">
+            <div class="preview-header">
+                <span style="display:flex; align-items:center; gap:0.5rem;">
+                    <span>📄 Aperçu Temps Réel</span>
+                    <span id="preview-page-count-badge" class="badge-page-count">~ 1 page</span>
+                </span>
+                <span style="font-size: 0.75rem; color: var(--color-secondary-light);">💡 Option : désactivez les "En-têtes et pieds de page" dans la boîte d'impression</span>
+            </div>
+            
+            <div id="preview-scroll-container" class="preview-scroll">
+                <div id="document-preview-target">
+                    <!-- Le document A4 généré sera injecté ici en JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==========================================================================
+         FENÊTRES MODALES & NOTIFICATIONS
+         ========================================================================== -->
+
+    <!-- Fenêtre Modale : Liste des Projets Locaux -->
+    <div id="projects-modal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>Historique des Comptes Rendus</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="background-color: var(--color-primary-light); color: var(--color-primary); font-weight: bold; font-size: 0.85rem; text-transform: uppercase;">
+                            <th style="padding: 0.75rem; border-bottom: 2px solid var(--color-border);">Client</th>
+                            <th style="padding: 0.75rem; border-bottom: 2px solid var(--color-border);">Date Visite</th>
+                            <th style="padding: 0.75rem; border-bottom: 2px solid var(--color-border); text-align: center;">Blocs</th>
+                            <th style="padding: 0.75rem; border-bottom: 2px solid var(--color-border); text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="projects-list-tbody">
+                        <!-- Rempli dynamiquement en JS (showProjectsModal) -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline btn-sm btn-close-modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Conteneur global de Notifications Toast -->
+    <div id="toast-notification-container" class="toast-container"></div>
+
+    <!-- Bandeau de transcription vocale en direct -->
+    <div id="voice-dictation-banner" class="voice-dictation-banner" style="display: none;">
+        <span class="pulse-icon">🎙️</span>
+        <span class="dictation-label">Écoute vocale :</span>
+        <span id="voice-dictation-text" class="dictation-text">Parlez maintenant...</span>
+        <button id="btn-stop-voice-dictation" class="btn btn-primary btn-sm" style="background-color: var(--color-error); padding: 0.25rem 0.5rem; font-size: 0.75rem; border: none; margin-left: 1rem; color: white;">Terminer</button>
+    </div>
+
+    <!-- Script logique principal -->
+    <script src="app.js"></script>
+</body>
+</html>
