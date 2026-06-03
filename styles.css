@@ -1548,3 +1548,53 @@ body.pdf-exporting .doc-section-text {
     page-break-inside: auto !important;
     break-inside: auto !important;
 }
+
+/* ==========================================================================
+   RESPONSIVE DESIGN (S'adapte aux demi-fenêtres et petits écrans)
+   ========================================================================== */
+
+/* Écrans moyens (ex: iPad paysage, petite fenêtre de MacBook) */
+@media (max-width: 1200px) {
+    .app-container {
+        flex-wrap: wrap;
+        overflow-y: auto;
+        overflow-x: hidden;
+        align-content: flex-start;
+    }
+    
+    .sidebar {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 35vh !important; /* La barre latérale passe en haut */
+        border-right: none !important;
+        border-bottom: 2px solid var(--color-border);
+    }
+    
+    .workspace {
+        flex: 1 1 350px !important;
+        height: calc(65vh - var(--header-height)) !important; /* Occupe le reste avec l'aperçu */
+        border-right: 2px solid var(--color-border) !important;
+        border-bottom: none !important;
+    }
+    
+    .preview {
+        flex: 1.2 1 400px !important;
+        height: calc(65vh - var(--header-height)) !important;
+    }
+}
+
+/* Petits écrans (ex: demi-fenêtre stricte, mobile) */
+@media (max-width: 768px) {
+    .workspace {
+        flex: 1 1 100% !important;
+        border-right: none !important;
+        border-bottom: 2px solid var(--color-border) !important;
+        height: 50vh !important; /* S'empile complètement */
+    }
+    
+    .preview {
+        flex: 1 1 100% !important;
+        height: 70vh !important;
+    }
+}
