@@ -27,7 +27,7 @@
     --color-info: #5d7fa3;             /* Bleu sourd */
 
     /* Typographies */
-    --font-serif: 'Playfair Display', Georgia, serif;
+    --font-serif: 'Lora', Georgia, serif;
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
     /* Effets & Marges */
@@ -672,6 +672,7 @@ select.form-control {
 
 
 .document-sheet {
+    font-family: var(--font-serif);
     background-color: #ffffff; /* Fond blanc pur pour impression propre */
     width: 210mm; /* Largeur A4 */
     height: 297mm; /* Hauteur A4 fixe */
@@ -710,54 +711,32 @@ select.form-control {
 /* En-tête de première page */
 .doc-header {
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    text-align: center;
-    border-bottom: 1px solid var(--color-secondary);
-    padding-bottom: 2rem;
-    margin-bottom: 2.5rem;
+    padding-bottom: 0.8rem;
+    margin-bottom: 1rem;
 }
 
 .doc-logo-img {
-    max-height: 240px; /* Logo doublé en taille pour une meilleure visibilité */
+    max-height: 95px;
     width: auto;
     object-fit: contain;
-    display: block;
-    margin: 0 auto 1.5rem;
     mix-blend-mode: multiply;
 }
 
-.doc-tagline {
-    font-family: var(--font-sans);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--color-primary);
-    margin-top: -0.5rem;
-    margin-bottom: 1rem;
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.doc-tagline::before, .doc-tagline::after {
-    content: '';
-    height: 1px;
-    background-color: var(--color-border);
-    flex: 1;
-    max-width: 100px;
+.doc-title-container {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    margin-top: 0.5rem;
 }
 
 .doc-title {
     font-family: var(--font-serif);
-    font-size: 2.2rem;
+    font-size: 1.6rem;
     color: var(--color-primary);
     line-height: 1.2;
-    margin-top: 1rem;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: 1px;
 }
 
 .doc-subtitle {
@@ -770,32 +749,116 @@ select.form-control {
     margin-top: 0.5rem;
 }
 
-/* Section Métadonnées dans le document */
-.doc-meta-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
-    background-color: #f7f4ee; /* Tuile beige clair qui ressort légèrement sur le fond blanc */
-    border: 1px solid var(--color-border);
-    border-radius: var(--border-radius);
-    padding: 1.5rem;
-    margin-bottom: 2.5rem;
-    font-size: 0.9rem;
-    border-left: 4px solid var(--color-secondary);
+/* Grille de métadonnées en deux colonnes */
+.doc-meta-split {
+    display: flex;
+    justify-content: space-between;
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1.5px solid var(--color-secondary-light);
+    font-size: 0.95rem;
 }
 
-.doc-meta-item strong {
+.doc-meta-left {
+    flex: 1.1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.doc-meta-right {
+    flex: 0.9;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    border-left: 1px solid var(--color-border);
+    padding-left: 1.5rem;
+}
+
+.doc-meta-client-name {
+    font-size: 1.15rem;
+    font-weight: bold;
     color: var(--color-primary);
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.5px;
-    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.doc-meta-item {
+    line-height: 1.5;
+}
+ 
+.doc-meta-item strong {
+    color: var(--color-text);
+    font-weight: normal;
+}
+
+.doc-meta-item strong::after {
+    content: " : ";
+}
+ 
+.doc-meta-item span {
+    color: var(--color-text);
+    font-weight: normal;
+}
+
+.doc-meta-address {
+    display: flex;
+    flex-direction: column;
+}
+
+.doc-meta-address strong::after {
+    content: "" !important;
+}
+
+.doc-meta-address .doc-address-val {
+    margin-top: 0.2rem;
+    line-height: 1.4;
+}
+
+.doc-company-header {
+    font-weight: bold;
+    color: var(--color-primary);
     margin-bottom: 0.2rem;
 }
 
-.doc-meta-item span {
+.doc-company-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--color-text-light);
+}
+
+.doc-company-details a {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.doc-company-details a:hover {
+    color: var(--color-accent);
+}
+
+.doc-company-name {
+    font-weight: bold;
     color: var(--color-text);
+    font-size: 0.88rem;
+}
+
+.doc-company-brand {
+    font-weight: bold;
+    color: var(--color-primary);
+    font-size: 0.88rem;
+}
+
+.doc-company-siret {
+    font-size: 0.72rem;
+    color: var(--color-text-light);
+}
+
+.doc-company-url {
     font-weight: 500;
+    color: var(--color-primary);
 }
 
 /* Sections de Contenu du Rapport */

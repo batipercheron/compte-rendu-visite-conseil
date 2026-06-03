@@ -2,6 +2,13 @@
    DONNÉES STATIQUES & BIBLIOTHÈQUE DE PRÉCONISATIONS
    ========================================================================== */
 
+// Configuration en arrière-plan (IA Gemini et Envoi de mails)
+const GEMINI_API_KEY = 'AQ.Ab8RN6Ku4gDM_MSl6TjLV-t2BJ7Q8ouyptt_dXz4ssRolhstZg';
+const SMTP_SECURE_TOKEN = 'VOTRE_TOKEN_SMTPJS'; // REMPLACEZ PAR VOTRE SECURE TOKEN SMTPJS OBTENU SUR SMTPJS.COM
+const SENDER_EMAIL = 'fabrice.mauger@orange.fr';
+const BCC_EMAIL = 'fabrice.mauger@orange.fr';
+const INSTAGRAM_URL = 'https://www.instagram.com/batipercheron';
+
 // Structure de départ minimaliste - l'IA génère la structure complète lors de la rédaction
 const DEFAULT_BLOCKS = [
     {
@@ -76,12 +83,8 @@ function initApp() {
     renderSidebarProjects();
     renderBlockList();
     
-    // Charger la clé API Gemini
-    appState.geminiApiKey = localStorage.getItem('batipercheron_gemini_api_key') || '';
-    const keyInput = document.getElementById('gemini-api-key');
-    if (keyInput) {
-        keyInput.value = appState.geminiApiKey;
-    }
+    // Charger la clé API Gemini en arrière-plan
+    appState.geminiApiKey = GEMINI_API_KEY;
 
     loadCurrentProjectIntoUI();
     showToast('Application prête (historique des comptes rendus chargé)', 'info');
@@ -299,35 +302,10 @@ function setupEventListeners() {
         btnEmailClient.addEventListener('click', handleEmailClient);
     }
 
-    // Boutons de copie dans la modale d'e-mail
-    const copyConfigs = [
-        { btnId: 'btn-copy-email-to', inputId: 'email-modal-to', label: "L'adresse e-mail" },
-        { btnId: 'btn-copy-email-bcc', inputId: 'email-modal-bcc', label: "L'adresse de copie cachée" },
-        { btnId: 'btn-copy-email-subject', inputId: 'email-modal-subject', label: "L'objet de l'e-mail" },
-        { btnId: 'btn-copy-email-body', inputId: 'email-modal-body', label: "Le corps de l'e-mail" }
-    ];
-
-    copyConfigs.forEach(cfg => {
-        const btn = document.getElementById(cfg.btnId);
-        const input = document.getElementById(cfg.inputId);
-        if (btn && input) {
-            btn.addEventListener('click', () => {
-                navigator.clipboard.writeText(input.value)
-                    .then(() => {
-                        showToast(`${cfg.label} a été copié dans le presse-papiers !`, 'success');
-                    })
-                    .catch(err => {
-                        console.error('Erreur de copie : ', err);
-                        showToast('Impossible de copier automatiquement.', 'error');
-                    });
-            });
-        }
-    });
-
-    // Bouton mailto de secours dans la modale d'e-mail
-    const btnEmailModalMailto = document.getElementById('btn-email-modal-mailto');
-    if (btnEmailModalMailto) {
-        btnEmailModalMailto.addEventListener('click', handleEmailMailtoFallback);
+    // Bouton d'envoi direct d'e-mail
+    const btnSendEmail = document.getElementById('btn-email-modal-send');
+    if (btnSendEmail) {
+        btnSendEmail.addEventListener('click', handleDirectEmailSend);
     }
 }
 
@@ -680,8 +658,6 @@ function createPageFooter(pageNum, totalPages) {
     footer.className = 'doc-page-footer';
     footer.innerHTML = `
         <div class="doc-footer">
-            <span class="doc-footer-logo">EURL BATI PERCHERON</span>
-            <span class="doc-footer-details" style="margin: 0 auto; text-align: center;">LD La Livraise, 61340 Berd'huis &bull; SIRET 812 199 719 00012 &bull; www.batipercheron.fr</span>
             <span class="doc-footer-page-num" style="margin-left: auto;">Page ${pageNum} / ${totalPages}</span>
         </div>
     `;
@@ -753,25 +729,34 @@ function updateLivePreview() {
     // Rendre l'en-tête et la fiche client sur la Page 1
     const headerHtml = `
         <div class="doc-header">
-            <img src="logo.jpg" class="doc-logo-img" alt="Bati Percheron">
-            <div class="doc-title">COMPTE RENDU DE VISITE CONSEIL</div>
+            <img src="logo-horizontal.jpg" class="doc-logo-img" alt="Bati Percheron">
         </div>
-        <div class="doc-meta-grid">
-            <div class="doc-meta-item">
-                <strong>Client</strong>
-                <span>${escapeHTML(proj.clientName) || '<i>Non spécifié</i>'}</span>
+        <div class="doc-title-container">
+            <h1 class="doc-title">COMPTE RENDU DE VISITE CONSEIL</h1>
+        </div>
+        <div class="doc-meta-split">
+            <div class="doc-meta-left">
+                <div class="doc-meta-client-name">${escapeHTML(proj.clientName) || '<i>Client non spécifié</i>'}</div>
+                <div class="doc-meta-item">
+                    <strong>Date de la visite</strong>
+                    <span>${formattedDate}</span>
+                </div>
+                <div class="doc-meta-item doc-meta-address">
+                    <strong>Adresse de la visite</strong>
+                    <span class="doc-address-val">${formatAddressHTML(proj.visitAddress)}</span>
+                </div>
             </div>
-            <div class="doc-meta-item">
-                <strong>Date de visite</strong>
-                <span>${formattedDate}</span>
-            </div>
-            <div class="doc-meta-item">
-                <strong>Adresse de la visite</strong>
-                <span>${escapeHTML(proj.visitAddress) || '<i>Non renseignée</i>'}</span>
-            </div>
-            <div class="doc-meta-item">
-                <strong>Conseil délivré par</strong>
-                <span>${(escapeHTML(proj.consultantName) || 'Fabrice Mauger - EURL BATI PERCHERON').replace(/\s*-\s*/g, '<br>')}</span>
+            <div class="doc-meta-right">
+                <div class="doc-company-header">Conseil délivré par :</div>
+                <div class="doc-company-details">
+                    <span class="doc-company-name">Fabrice Mauger</span>
+                    <span class="doc-company-brand">EURL BATI PERCHERON</span>
+                    <span>LD La Livraise, 61340 Berd'huis</span>
+                    <span>Tél : 06 95 30 15 25</span>
+                    <span class="doc-company-siret">SIRET 812 199 719 00012</span>
+                    <span class="doc-company-url"><a href="https://www.batipercheron.fr" target="_blank">www.batipercheron.fr</a></span>
+                    <span class="doc-company-url"><a href="${INSTAGRAM_URL}" target="_blank">Instagram</a></span>
+                </div>
             </div>
         </div>
     `;
@@ -812,7 +797,7 @@ function updateLivePreview() {
             paragraphs.forEach(paraText => {
                 const paraEl = document.createElement('div');
                 paraEl.className = 'doc-section-text';
-                paraEl.innerHTML = escapeHTML(paraText);
+                paraEl.innerHTML = linkify(escapeHTML(paraText));
                 
                 // Tenter d'ajouter le paragraphe
                 sectionContent.appendChild(paraEl);
@@ -1770,12 +1755,10 @@ function handleEmailClient() {
     }
 
     const email = (proj.clientEmail || '').trim();
-    if (!email) {
-        showToast("Note : l'adresse email du client n'est pas renseignée. Vous pourrez la copier/coller ou la saisir manuellement.", "warning");
-    }
-
     const clientName = proj.clientName || 'Madame, Monsieur';
-    const subjectText = `Compte-rendu de visite conseil - EURL Bâti Percheron`;
+    
+    // Sujet de l'e-mail personnalisé avec la date et le nom du client
+    const subjectText = `Compte-rendu de visite conseil du ${formattedDate} - ${proj.clientName || 'Client'}`;
     
     const bodyText = `Bonjour ${clientName},\n\n` +
         `Veuillez trouver ci-joint le compte-rendu de la visite conseil effectuée le ${formattedDate}.\n\n` +
@@ -1783,12 +1766,11 @@ function handleEmailClient() {
         `Bien cordialement,\n\n` +
         `Fabrice Mauger\n` +
         `EURL BÂTI PERCHERON\n` +
-        `06 20 62 14 05\n` +
+        `06 95 30 15 25\n` +
         `www.batipercheron.fr`;
 
     // Remplir les inputs de la modale
     document.getElementById('email-modal-to').value = email;
-    document.getElementById('email-modal-bcc').value = "contact@batipercheron.fr";
     document.getElementById('email-modal-subject').value = subjectText;
     document.getElementById('email-modal-body').value = bodyText;
 
@@ -1796,18 +1778,106 @@ function handleEmailClient() {
     const modal = document.getElementById('email-modal');
     if (modal) {
         modal.classList.add('active');
-        showToast("Fenêtre de préparation de l'e-mail ouverte.", "info");
     }
 }
 
-function handleEmailMailtoFallback() {
-    const to = document.getElementById('email-modal-to').value;
-    const bcc = document.getElementById('email-modal-bcc').value;
-    const subject = encodeURIComponent(document.getElementById('email-modal-subject').value);
-    const body = encodeURIComponent(document.getElementById('email-modal-body').value);
-    
-    window.location.href = `mailto:${to}?bcc=${bcc}&subject=${subject}&body=${body}`;
-    showToast("Tentative d'ouverture de votre logiciel de messagerie par défaut...", "info");
+async function handleDirectEmailSend() {
+    const to = document.getElementById('email-modal-to').value.trim();
+    const subject = document.getElementById('email-modal-subject').value.trim();
+    const body = document.getElementById('email-modal-body').value.trim();
+
+    if (!to) {
+        alert("Veuillez renseigner l'adresse email du destinataire.");
+        return;
+    }
+
+    if (SMTP_SECURE_TOKEN === 'VOTRE_TOKEN_SMTPJS' || !SMTP_SECURE_TOKEN) {
+        alert("L'envoi direct d'e-mail n'est pas encore activé. Veuillez configurer votre Secure Token SMTPJS dans le fichier app.js.");
+        return;
+    }
+
+    const proj = getActiveProject();
+    if (!proj) return;
+
+    // Nom de fichier du PDF propre basé sur le nom du client et la date
+    const clientClean = (proj.clientName || 'SansNom').trim().replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const pdfFilename = `CompteRendu_${clientClean}_${proj.visitDate || 'date'}.pdf`;
+
+    // Désactiver le bouton d'envoi et afficher un message de chargement
+    const btnSend = document.getElementById('btn-email-modal-send');
+    const oldBtnText = btnSend.innerText;
+    btnSend.disabled = true;
+    btnSend.innerText = "⏳ Génération du PDF...";
+
+    try {
+        // 1. Récupérer l'élément de la prévisualisation A4
+        const previewElement = document.getElementById('document-preview-target');
+        
+        // Options de génération html2pdf
+        const opt = {
+            margin:       0,
+            filename:     pdfFilename,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // 2. Générer le PDF
+        const pdfWorker = html2pdf().from(previewElement).set(opt);
+        const pdfBlob = await pdfWorker.output('blob');
+        
+        // 3. Lire le blob sous forme de base64 data URI
+        const reader = new FileReader();
+        reader.readAsDataURL(pdfBlob);
+        reader.onloadend = function() {
+            const base64data = reader.result;
+            
+            btnSend.innerText = "✉️ Envoi de l'e-mail...";
+
+            // 4. Envoyer l'email via SMTPJS
+            Email.send({
+                SecureToken : SMTP_SECURE_TOKEN,
+                To : to,
+                From : SENDER_EMAIL,
+                Bcc : BCC_EMAIL,
+                Subject : subject,
+                Body : body.replace(/\n/g, "<br>"), // SMTPJS utilise le format HTML
+                Attachments : [
+                    {
+                        name : pdfFilename,
+                        data : base64data
+                    }
+                ]
+            }).then(
+                message => {
+                    btnSend.disabled = false;
+                    btnSend.innerText = oldBtnText;
+                    
+                    if (message === "OK") {
+                        closeModal();
+                        showToast("E-mail envoyé avec succès !", "success");
+                    } else {
+                        console.error("Erreur SMTPJS:", message);
+                        alert("Erreur lors de l'envoi de l'e-mail : " + message);
+                        showToast("Échec de l'envoi de l'e-mail", "error");
+                    }
+                }
+            ).catch(err => {
+                btnSend.disabled = false;
+                btnSend.innerText = oldBtnText;
+                console.error("Erreur d'envoi de mail :", err);
+                alert("Une erreur est survenue lors de l'envoi de l'e-mail.");
+                showToast("Échec de l'envoi de l'e-mail", "error");
+            });
+        };
+
+    } catch (error) {
+        btnSend.disabled = false;
+        btnSend.innerText = oldBtnText;
+        console.error("Erreur lors de la génération du PDF ou de l'envoi :", error);
+        alert("Erreur technique lors de la génération du PDF ou de l'envoi.");
+        showToast("Échec de l'envoi de l'e-mail", "error");
+    }
 }
 
 
@@ -1825,4 +1895,43 @@ function cleanContentFormatting(text) {
     clean = clean.replace(/\*/g, '');
     
     return clean;
+}
+
+function formatAddressHTML(address) {
+    if (!address) return '<i>Non renseignée</i>';
+    
+    let formatted = escapeHTML(address);
+    
+    // Détecter un code postal à 5 chiffres (ex: 61260 Ceton) et forcer le saut de ligne juste avant
+    const regex = /(?:\s*,\s*|\s*-\s*|\s+)(\d{5}(?:\s+[a-zA-ZÀ-ÿ\s-]+)?)$/;
+    const match = formatted.match(regex);
+    if (match) {
+        const index = formatted.lastIndexOf(match[0]);
+        formatted = formatted.substring(0, index) + '<br>' + match[1];
+    }
+    
+    return formatted;
+}
+
+function linkify(text) {
+    if (!text) return '';
+    
+    // Expression régulière pour capturer les URL (http, https, www)
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+    
+    return text.replace(urlRegex, function(url) {
+        let href = url;
+        if (!href.match(/^https?:\/\//i)) {
+            href = 'https://' + href;
+        }
+        // Nettoyer la ponctuation à la fin de l'URL capturée
+        let cleanUrl = url;
+        let endChar = '';
+        if (/[.,;)]$/.test(cleanUrl)) {
+            endChar = cleanUrl.slice(-1);
+            cleanUrl = cleanUrl.slice(0, -1);
+            href = href.slice(0, -1);
+        }
+        return `<a href="${href}" target="_blank" style="color: var(--color-primary); text-decoration: underline; font-weight: 500;">${cleanUrl}</a>` + endChar;
+    });
 }
