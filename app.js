@@ -39,7 +39,9 @@ let appState = {
     currentProjectId: null,  // ID du projet en cours d'édition
     activeTab: 'edit',       // Onglet actif : 'edit' ou 'vocal'
     activeBlockId: 'intro',  // Bloc actif dans l'éditeur
-    geminiApiKey: ''         // Clé API Google Gemini
+    geminiApiKey: '',        // Clé API Google Gemini
+    customAIInstructions: '', // Instructions personnalisées globales
+    lastVocalInstruction: '' // Dernière consigne vocale pour sauvegarde éventuelle
 };
 
 // Modèle d'un projet par défaut
@@ -85,6 +87,12 @@ function initApp() {
     
     // Charger la clé API Gemini en arrière-plan
     appState.geminiApiKey = GEMINI_API_KEY;
+
+    // Charger les instructions personnalisées IA
+    const storedInstructions = localStorage.getItem('batipercheron_custom_ai_instructions');
+    if (storedInstructions) {
+        appState.customAIInstructions = storedInstructions;
+    }
 
     loadCurrentProjectIntoUI();
     showToast('Application prête (historique des comptes rendus chargé)', 'info');
@@ -207,6 +215,7 @@ function setupEventListeners() {
     // Boutons de validation de la suggestion IA
     const btnAcceptIa = document.getElementById('btn-accept-ia-suggestion');
     const btnRejectIa = document.getElementById('btn-reject-ia-suggestion');
+    const btnSaveAsRule = document.getElementById('btn-save-as-rule');
     const suggestionContainer = document.getElementById('ia-suggestion-container');
     const suggestionTextarea = document.getElementById('editor-ia-suggestion');
 
@@ -231,6 +240,22 @@ function setupEventListeners() {
                 suggestionContainer.style.display = 'none';
                 suggestionTextarea.value = '';
                 showToast("Proposition IA ignorée", "info");
+            }
+        });
+    }
+
+    if (btnSaveAsRule) {
+        btnSaveAsRule.addEventListener('click', () => {
+            if (appState.lastVocalInstruction) {
+                const currentInstr = appState.customAIInstructions || '';
+                const newInstr = currentInstr ? currentInstr + "\n- " + appState.lastVocalInstruction : "- " + appState.lastVocalInstruction;
+                
+                appState.customAIInstructions = newInstr;
+                localStorage.setItem('batipercheron_custom_ai_instructions', newInstr);
+                
+                showToast("Règle globale enregistrée !", "success");
+            } else {
+                showToast("Aucune instruction récente à sauvegarder.", "warning");
             }
         });
     }
@@ -296,10 +321,51 @@ function setupEventListeners() {
         btnAiGenerate.addEventListener('click', handleAIGenerate);
     }
 
+    // Bouton de copie à l'identique (sans IA)
+    const btnCopyIdentical = document.getElementById('btn-copy-identical');
+    if (btnCopyIdentical) {
+        btnCopyIdentical.addEventListener('click', handleCopyIdentical);
+    }
+
     // Bouton de téléchargement du PDF
     const btnDownloadPdf = document.getElementById('btn-download-pdf');
     if (btnDownloadPdf) {
         btnDownloadPdf.addEventListener('click', handleDownloadPdf);
+    }
+
+    // Modal Réglages IA
+    const btnAiSettings = document.getElementById('btn-ai-settings');
+    const aiSettingsModal = document.getElementById('ai-settings-modal');
+    const aiCustomInstructionsInput = document.getElementById('ai-custom-instructions');
+    const btnSaveAiSettings = document.getElementById('btn-save-ai-settings');
+
+    if (btnAiSettings && aiSettingsModal) {
+        btnAiSettings.addEventListener('click', () => {
+            if (aiCustomInstructionsInput) {
+                aiCustomInstructionsInput.value = appState.customAIInstructions || '';
+            }
+            aiSettingsModal.classList.add('active');
+        });
+    }
+
+    if (btnSaveAiSettings) {
+        btnSaveAiSettings.addEventListener('click', () => {
+            const instructions = aiCustomInstructionsInput ? aiCustomInstructionsInput.value.trim() : '';
+            appState.customAIInstructions = instructions;
+            localStorage.setItem('batipercheron_custom_ai_instructions', instructions);
+            showToast("Instructions IA enregistrées !", "success");
+            aiSettingsModal.classList.remove('active');
+        });
+    }
+
+    // Toggle flèche éditeur
+    const btnToggleEditor = document.getElementById('btn-toggle-editor');
+    const editorWrapper = document.getElementById('editor-content-wrapper');
+    if (btnToggleEditor && editorWrapper) {
+        btnToggleEditor.addEventListener('click', (e) => {
+            e.preventDefault();
+            editorWrapper.classList.toggle('collapsed');
+        });
     }
 }
 
@@ -1297,10 +1363,15 @@ async function modifyTextWithAI(textarea, instruction) {
     const currentText = textarea.value.trim();
     const proj = getActiveProject();
     
+    // Mémoriser la consigne pour une sauvegarde globale éventuelle
+    appState.lastVocalInstruction = instruction;
+    
     const block = proj.blocks.find(b => b.id === appState.activeBlockId);
     const blockTitle = block ? block.title : "ce paragraphe";
 
-    const promptText = `Tu es un conseiller expert en bâtiment, spécialiste bienveillant et constructif de la restauration et de la préservation du patrimoine ancien percheron.
+    const customInstr = appState.customAIInstructions ? `\n\nVoici les instructions globales permanentes à respecter impérativement :\n"${appState.customAIInstructions}"` : '';
+
+    const promptText = `Tu es un conseiller expert en bâtiment, spécialiste bienveillant et constructif de la restauration et de la préservation du patrimoine ancien percheron.${customInstr}
 Tu dois modifier ou corriger le texte actuel du bloc "${blockTitle}" en appliquant l'instruction vocale donnée par l'utilisateur.
 
 Voici le texte actuel (qui peut être vide) :
@@ -1465,6 +1536,37 @@ function readDocxFile(file) {
    RÉDACTION AUTOMATIQUE PAR IA (API GEMINI)
    ========================================================================== */
 
+// Recopier la transcription brute à l'identique (bypass de l'IA)
+function handleCopyIdentical() {
+    const proj = getActiveProject();
+    if (!proj) return;
+
+    const transcription = (proj.transcription || '').trim();
+    if (!transcription) {
+        showToast("Veuillez d'abord coller ou importer une transcription de note vocale.", "warning");
+        return;
+    }
+
+    if (confirm("Voulez-vous vraiment remplacer le document actuel par un seul bloc contenant votre transcription brute ?")) {
+        proj.blocks = [
+            {
+                id: 'raw_' + Date.now(),
+                title: 'Transcription brute',
+                content: transcription,
+                status: 'draft'
+            }
+        ];
+        appState.activeBlockId = proj.blocks[0].id;
+        
+        saveProjectsToLocalStorage();
+        loadCurrentProjectIntoUI();
+        renderBlockList();
+        switchTab('edit');
+        showToast("Transcription recopiée avec succès !", "success");
+    }
+}
+
+// Lancer la génération avec l'IA
 async function handleAIGenerate() {
     const proj = getActiveProject();
     if (!proj) return;
@@ -1504,7 +1606,9 @@ async function handleAIGenerate() {
     const formattedDate = proj.visitDate ? proj.visitDate.split('-').reverse().join('/') : 'Non renseignée';
     const guidelines = document.getElementById('ai-guidelines') ? document.getElementById('ai-guidelines').value.trim() : '';
 
-    const promptText = `Tu es un conseiller expert en bâtiment, spécialiste bienveillant et constructif de la restauration et de la préservation du patrimoine bâti ancien traditionnel dans le Perche.
+    const customInstr = appState.customAIInstructions ? `\n\nVoici les instructions globales permanentes (règles de rédaction) à respecter impérativement :\n"${appState.customAIInstructions}"` : '';
+
+    const promptText = `Tu es un conseiller expert en bâtiment, spécialiste bienveillant et constructif de la restauration et de la préservation du patrimoine bâti ancien traditionnel dans le Perche.${customInstr}
 Voici les informations sur une visite conseil effectuée :
 - Client : ${proj.clientName || 'Non spécifié'}
 - Date de visite : ${formattedDate}

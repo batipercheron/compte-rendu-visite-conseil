@@ -44,6 +44,9 @@
             <button id="btn-import-trigger" class="btn btn-secondary btn-sm" title="Charger une sauvegarde .json existante depuis votre ordinateur">
                 📥 Ouvrir un fichier local (.json)
             </button>
+            <button id="btn-ai-settings" class="btn btn-secondary btn-sm" style="margin-left: 0.5rem;" title="Configurer les instructions globales pour l'IA">
+                ⚙️ Réglages IA
+            </button>
             <!-- Input file caché pour l'importation -->
             <input type="file" id="file-import-input" accept=".json" style="display: none;">
             
@@ -165,10 +168,12 @@
                     <div class="editor-body">
                         
                         <!-- Saisie unique du contenu du bloc -->
-                        <div class="editor-section">
+                        <div class="editor-section" id="editor-content-wrapper">
                             <label for="editor-content" style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                                <span>
-                                    ✍️ Texte du Bloc
+                                <span style="display:flex; align-items:center; gap:0.5rem;">
+                                    <span>✍️ Texte du Bloc</span>
+                                </span>
+                                <span style="flex:1; text-align:left; padding-left:1rem;">
                                     <span style="font-size: 0.7rem; font-weight: normal; color: var(--color-text-light); text-transform: none; display:block; margin-top:2px;">(Rédigez le contenu ou dictez une consigne de modification par l'IA)</span>
                                 </span>
                                 <button class="btn-mic" id="btn-mic-content" title="Dicter une consigne de modification ou correction par l'IA" type="button">🎙️</button>
@@ -185,6 +190,9 @@
                             <div class="ia-suggestion-actions">
                                 <button id="btn-accept-ia-suggestion" class="btn btn-primary btn-sm" style="background-color: var(--color-success); border-color: var(--color-success);" type="button">
                                     ✔️ Valider et Remplacer
+                                </button>
+                                <button id="btn-save-as-rule" class="btn btn-primary btn-sm" style="background-color: var(--color-accent); border-color: var(--color-accent);" title="Ajouter la consigne que vous venez de dicter aux réglages IA globaux" type="button">
+                                    💾 Mémoriser la règle
                                 </button>
                                 <button id="btn-reject-ia-suggestion" class="btn btn-outline btn-sm" style="color: var(--color-error); border-color: var(--color-error);" type="button">
                                     ❌ Ignorer
@@ -207,9 +215,12 @@
                                     <button class="btn-mic" id="btn-mic-guidelines" title="Dicter des consignes de rédaction pour l'IA" type="button" style="width: 32px; height: 32px; min-width: 32px;">🎙️</button>
                                 </div>
                             </div>
-                            <div style="display:flex; align-items:center;">
+                            <div style="display:flex; align-items:center; gap: 0.5rem;">
                                 <button id="btn-ai-generate" class="btn btn-primary" style="background-color:var(--color-accent); padding: 0.75rem 1.25rem; font-size:0.9rem; font-weight:bold; line-height:1.2; box-shadow: var(--shadow-sm);" title="Lancer la rédaction et la structuration automatique du compte rendu par l'IA Gemini" type="button">
-                                    🪄 Rédiger par l'IA
+                                    ✨ Rédiger par l'IA
+                                </button>
+                                <button id="btn-copy-identical" class="btn btn-secondary" style="padding: 0.75rem 1.25rem; font-size:0.9rem; font-weight:bold; line-height:1.2; box-shadow: var(--shadow-sm);" title="Recopier la transcription telle quelle sans utiliser l'IA" type="button">
+                                    📝 Recopier à l'identique
                                 </button>
                             </div>
                         </div>
@@ -283,6 +294,29 @@
                 </table>
             </div>
             <div class="modal-footer">
+                <button class="btn btn-outline btn-sm btn-close-modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fenêtre Modale : Réglages IA -->
+    <div id="ai-settings-modal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>⚙️ Réglages de l'Intelligence Artificielle</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.85rem; color: var(--color-text-light); margin-bottom: 1rem;">
+                    Définissez ici vos instructions permanentes pour l'IA. Ces instructions seront mémorisées et ajoutées automatiquement à chaque demande de génération ou de correction.
+                </p>
+                <div class="form-group">
+                    <label for="ai-custom-instructions">Instructions spécifiques (ex: Ton, style, vocabulaire Bati Percheron) :</label>
+                    <textarea id="ai-custom-instructions" class="form-control" style="height: 150px; font-size: 0.85rem;" placeholder="Exemple: Fais des phrases courtes et professionnelles. Ne mets pas de puces. Le ton doit être bienveillant et technique..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-save-ai-settings" class="btn btn-primary btn-sm">💾 Enregistrer</button>
                 <button class="btn btn-outline btn-sm btn-close-modal">Fermer</button>
             </div>
         </div>

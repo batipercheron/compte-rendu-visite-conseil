@@ -522,7 +522,6 @@ select.form-control {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    flex: 1;
     min-height: 0;
 }
 
@@ -552,8 +551,7 @@ select.form-control {
 }
 
 #editor-content {
-    flex: 1;
-    resize: none; /* Remplissage automatique de toute la hauteur disponible */
+    min-height: 200px;
 }
 
 .editor-textarea:focus {
@@ -1567,4 +1565,17 @@ body.pdf-exporting .doc-section-text {
 /* On s'assure que le zoom ne s'applique pas pendant la création du vrai PDF ! */
 body.pdf-exporting #document-preview-target {
     zoom: 1 !important;
+}
+
+/* Styles pour l'éditeur réduit (collapsed) */
+#editor-content-wrapper.collapsed #editor-content {
+    height: 60px !important;
+    min-height: 60px !important;
+    overflow-y: auto;
+}
+#editor-content-wrapper.collapsed #btn-toggle-editor {
+    transform: rotate(180deg);
+}
+#btn-toggle-editor {
+    transition: transform 0.2s ease;
 }
