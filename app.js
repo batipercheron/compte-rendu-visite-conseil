@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    DONNÃ‰ES STATIQUES & BIBLIOTHÃˆQUE DE PRÃ‰CONISATIONS
    ========================================================================== */
 
@@ -686,13 +686,13 @@ function renderBlockList() {
         // Contenu du bloc item
         item.innerHTML = `
             <div class="block-item-info">
-                <div class="block-title" title="${block.title}">${block.title}</div>
+                <div class="block-title" title="${block.title}">${block.title}</div>
             </div>
             <div class="block-item-actions">
                 <button class="block-item-btn btn-rename-block" title="Renommer">✏️</button>
+                <button class="block-item-btn btn-delete-block" title="Supprimer">🗑️</button>
                 <button class="block-item-btn btn-move-up" title="Monter">⬆️</button>
                 <button class="block-item-btn btn-move-down" title="Descendre">⬇️</button>
-                <button class="block-item-btn btn-delete-block" title="Supprimer">🗑️</button>
             </div>
         `;
 
@@ -733,7 +733,7 @@ function updateLivePreview() {
         previewContainer.innerHTML = `
             <div class="preview-empty-message">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                <p>Aucun projet actif. CrÃ©ez un nouveau projet pour commencer.</p>
+                <p>Aucun projet actif. CrÃ©ez un nouveau projet pour commencer.</p>
             </div>
         `;
         return;
@@ -806,7 +806,7 @@ function updateLivePreview() {
                 <div class="doc-meta-item doc-meta-address">
                     <strong>Adresse de la visite</strong>
                     <span class="doc-address-val">${formatAddressHTML(proj.visitAddress)}</span>
-                </div>
+                </div>
             </div>
             <div class="doc-meta-right">
                 <div class="doc-company-header">Conseil délivré par :</div>
@@ -818,7 +818,7 @@ function updateLivePreview() {
                     <span class="doc-company-siret">SIRET 812 199 719 00012</span>
                     <span class="doc-company-url"><a href="https://www.batipercheron.fr" target="_blank">www.batipercheron.fr</a></span>
                     <span class="doc-company-url"><a href="${INSTAGRAM_URL}" target="_blank">Instagram</a></span>
-                </div>
+                </div>
             </div>
         </div>
     `;
@@ -1530,7 +1530,7 @@ function readDocxFile(file) {
                     updateLivePreview();
                 }
                 
-                showToast("Fichier Word (.docx) importÃ© !", "success");
+                showToast("Fichier Word (.docx) importé !", "success");
             })
             .catch(function(err) {
                 console.error("Erreur d'extraction Mammoth", err);
@@ -1541,10 +1541,10 @@ function readDocxFile(file) {
 }
 
 /* ==========================================================================
-   RÃ‰DACTION AUTOMATIQUE PAR IA (API GEMINI)
+   RÉDACTION AUTOMATIQUE PAR IA (API GEMINI)
    ========================================================================== */
 
-// Recopier la transcription brute Ã  l'identique (bypass de l'IA)
+// Recopier la transcription brute à l'identique (bypass de l'IA)
 function handleCopyIdentical() {
     const proj = getActiveProject();
     if (!proj) return;
@@ -1559,7 +1559,7 @@ function handleCopyIdentical() {
         proj.blocks = [
             {
                 id: 'raw_' + Date.now(),
-                title: 'Transcription brute',
+                title: '',
                 content: transcription,
                 status: 'draft'
             }
@@ -1570,11 +1570,11 @@ function handleCopyIdentical() {
         loadCurrentProjectIntoUI();
         renderBlockList();
         switchTab('edit');
-        showToast("Transcription recopiÃ©e avec succÃ¨s !", "success");
+        showToast("Transcription recopiée avec succès !", "success");
     }
 }
 
-// Lancer la gÃ©nÃ©ration avec l'IA
+// Lancer la génération avec l'IA
 async function handleAIGenerate() {
     const proj = getActiveProject();
     if (!proj) return;
@@ -1585,88 +1585,133 @@ async function handleAIGenerate() {
         return;
     }
 
-    // S'il n'y a pas de clÃ© API, on propose la simulation de rÃ©partition locale
+    // S'il n'y a pas de clé API, on propose la simulation de répartition locale
     if (!appState.geminiApiKey) {
-        if (confirm("Aucune clÃ© API Gemini n'est configurÃ©e dans la barre latÃ©rale gauche. Souhaitez-vous exÃ©cuter l'algorithme local de rÃ©partition (sans IA en ligne) ?")) {
-            showToast("RÃ©partition locale en cours...", "info");
+        if (confirm("Aucune clé API Gemini n'est configurée dans la barre latérale gauche. Souhaitez-vous exécuter l'algorithme local de répartition (sans IA en ligne) ?")) {
+            showToast("Répartition locale en cours...", "info");
             autoDispatchFallback(proj);
-            showToast("Rapport structurÃ© localement (sans IA) !", "success");
+            showToast("Rapport structuré localement (sans IA) !", "success");
             switchTab('edit');
         }
         return;
     }
 
-    // Avertissement si du contenu existant va Ãªtre remplacÃ©
+    // Avertissement si du contenu existant va être remplacé
     const hasExistingContent = proj.blocks.some(b => b.content && b.content.trim());
     if (hasExistingContent) {
         const confirmed = confirm(
-            "L'IA va gÃ©nÃ©rer une nouvelle structure de blocs complÃ¨te.\n" +
-            "Le contenu actuel de tous les blocs sera remplacÃ© par les nouvelles sections crÃ©Ã©es par l'IA.\n\n" +
+            "L'IA va générer une nouvelle structure de blocs complète.\n" +
+            "Le contenu actuel de tous les blocs sera remplacé par les nouvelles sections créées par l'IA.\n\n" +
             "Voulez-vous continuer ?"
         );
         if (!confirmed) return;
     }
 
-    // Afficher l'Ã©cran de chargement
+    // Afficher l'écran de chargement
     const loader = document.getElementById('ai-loading-overlay');
     if (loader) loader.classList.add('active');
 
-    const formattedDate = proj.visitDate ? proj.visitDate.split('-').reverse().join('/') : 'Non renseignÃ©e';
+    const formattedDate = proj.visitDate ? proj.visitDate.split('-').reverse().join('/') : 'Non renseignée';
     const guidelines = document.getElementById('ai-guidelines') ? document.getElementById('ai-guidelines').value.trim() : '';
 
-    const customInstr = appState.customAIInstructions ? `\n\nVoici les instructions globales permanentes (rÃ¨gles de rÃ©daction) Ã  respecter impÃ©rativement :\n"${appState.customAIInstructions}"` : '';
+    const customInstr = appState.customAIInstructions ? `\n\nVoici les instructions globales permanentes (règles de rédaction) à respecter impérativement :\n"${appState.customAIInstructions}"` : '';
 
-    const promptText = `Tu es un conseiller expert en bÃ¢timent, spÃ©cialiste bienveillant et constructif de la restauration et de la prÃ©servation du patrimoine bÃ¢ti ancien traditionnel dans le Perche.${customInstr}
-Voici les informations sur une visite conseil effectuÃ©e :
-- Client : ${proj.clientName || 'Non spÃ©cifiÃ©'}
+    const promptText = `${customInstr}
+Tu es l'assistant rédactionnel de Fabrice Mauger, artisan spécialisé dans la restauration du bâti ancien (Bâti Percheron, Parc Naturel Régional du Perche). À partir de la transcription vocale d'une visite conseil qu'il a réalisée chez un client (le plus souvent dans le cadre d'un projet d'acquisition ou de rénovation d'un bien ancien), tu rédiges un compte-rendu de visite conseil complet et détaillé, en français.
+
+## Consigne impérative sur le niveau de détail
+Ne produis jamais une synthèse courte. Le compte-rendu doit reprendre l'intégralité des observations, échanges techniques, diagnostics, hypothèses, solutions envisagées, variantes évoquées, points de vigilance, réserves et recommandations formulés pendant la visite, même si cela donne un document long. Si un point a été développé longuement à l'oral (plusieurs hypothèses, plusieurs solutions alternatives, plusieurs variantes graduées), il doit être développé avec la même richesse à l'écrit. Ne résume jamais un raisonnement détaillé en une phrase courte, et ne sautes jamais une étape intermédiaire d'un raisonnement pour ne garder que les deux extrêmes (par exemple : ne pas se limiter à « surveillance simple » et « réfection lourde » si une solution intermédiaire chiffrée a été évoquée à l'oral).
+
+## Checklist anti-oubli : lots techniques à vérifier systématiquement
+Avant de considérer le compte-rendu terminé, vérifie qu'aucun des lots suivants n'a été oublié s'il a été abordé, même brièvement, pendant la visite : structure/maçonnerie, charpente, couverture, isolation, ventilation, menuiseries et condensation, chauffage, plomberie/sanitaires, électricité, sols et revêtements, enduits et humidité, aménagements intérieurs, aménagements extérieurs, assainissement.
+Un sujet évoqué en une seule phrase à l'oral (ex : un peu de condensation sur les fenêtres, une ventilation jugée insuffisante) doit malgré tout donner lieu à son propre paragraphe ou sous-titre dans le compte-rendu, même court. Ne jamais fusionner silencieusement un lot technique dans un autre sujet pour gagner de la place, et ne jamais l'omettre au motif qu'il n'a pas donné lieu à une décision ou à des travaux immédiats.
+
+## Structure générale
+1. Titre : « COMPTE-RENDU DE VISITE CONSEIL »
+2. Objet (une ligne résumant la nature du bien et l'objectif de la visite)
+3. Date de la visite
+4. Contexte de la visite : qui a demandé la visite, dans quel cadre (acquisition, projet de rénovation…), composition du bien, objectifs précis de la visite.
+   - Toujours inclure une clause de cadrage du type : la visite constitue un avis technique fondé sur des observations visuelles, elle ne se substitue pas à une étude réalisée par un bureau d'études spécialisé, et il peut être opportun de faire intervenir un bureau d'études structure en cas de doute sur des éléments porteurs.
+   - Ne pas mentionner le prix d'acquisition du bien, ni les circonstances personnelles ou familiales du client (séparation, situation de vie, etc.), même si elles ont été évoquées pendant la visite. Ces éléments n'ont pas leur place dans un compte-rendu technique, sauf s'ils ont une incidence directe et utile sur le dimensionnement d'un équipement (ex : nombre de chambres/occupants prévu pertinent pour l'assainissement) — dans ce cas, ne reprendre que le fait technique utile, sans le contexte personnel qui l'accompagne.
+5. Corps du compte-rendu organisé en grandes sections indépendantes par zone du bâtiment, puis par lot technique à l'intérieur de chaque zone :
+   - MAISON PRINCIPALE, avec un sous-titre dédié pour chaque lot technique réellement traité pendant la visite : structure et cheminée, planchers et structure d'étage, sols et revêtements (tomettes…), enduits et humidité, salle de bains, menuiseries et condensation, couverture et isolation, ouvertures de toiture. Chaque lot évoqué doit avoir son propre sous-titre, même bref — ne pas regrouper plusieurs lots sous un intitulé générique « autres observations ».
+   - CHAUFFAGE, toujours en section indépendante au même niveau que « MAISON PRINCIPALE » et « DÉPENDANCES » — ne jamais l'enterrer comme sous-partie de la couverture/isolation même si le sujet a été abordé en lien avec celle-ci à l'oral. Présenter le système actuel, le système envisagé, le lien explicite avec d'autres travaux si pertinent (ex : isolation de toiture à reprendre en amont d'une pompe à chaleur), et nommer l'artisan ou l'entreprise cité comme interlocuteur.
+   - DÉPENDANCES, chaque dépendance traitée individuellement (couverture, charpente, cheminée éventuelle, état général), puis les projets d'aménagement envisagés pour ces dépendances.
+   - AMÉNAGEMENTS EXTÉRIEURS, toujours en section indépendante — ne jamais la fusionner avec les observations intérieures de la maison principale. Inclut notamment l'assainissement, les abords, le terrain.
+6. Conclusion générale : synthèse rédigée en prose, qui rappelle les points les plus significatifs, hiérarchise implicitement leur importance, et resitue le potentiel global du bien.
+
+## Distinguer systématiquement, pour chaque sujet traité
+Pour chaque désordre ou sujet technique abordé, distingue clairement dans la rédaction :
+- les constats observés directement pendant la visite ;
+- les hypothèses ou causes possibles (si plusieurs causes coexistent, les présenter toutes plutôt que d'en retenir une seule arbitrairement — « le phénomène semble multifactoriel : … ») ;
+- les recommandations et solutions envisagées, y compris les solutions ou essais simples et peu coûteux suggérés avant d'engager des travaux plus lourds (ex : tester un relevage temporaire du foyer avant de modifier la hotte) ;
+- les travaux à prévoir en priorité ou en urgence ;
+- les travaux pouvant être différés, en précisant si possible un horizon de temps ou une condition de déclenchement (ex : « si des fissures structurelles apparaissent »).
+
+## Restitution des éléments rassurants
+Quand un élément observé pendant la visite permet d'écarter une inquiétude ou de relativiser un désordre (ex : un appui ou un corbeau qui ne présente aucune rupture, un mouvement jugé ancien et stabilisé), le dire explicitement et expliquer en quoi cet élément est rassurant pour le client (« si cet élément avait commencé à se dégrader, le niveau d'inquiétude serait nettement supérieur »), plutôt que de se contenter de mentionner l'absence de désordre en passant.
+
+## Hiérarchisation et niveaux de gravité
+Pour chaque désordre technique, préciser systématiquement :
+- s'il présente ou non un caractère d'urgence ou un risque structurel à court terme ;
+- s'il s'agit d'un phénomène ancien et lent ou récent et actif ;
+- si les travaux correspondants peuvent être différés ou doivent être programmés à moyen terme.
+Quand plusieurs niveaux d'intervention sont possibles, les présenter sous forme de variantes graduées complètes, du plus léger au plus lourd (ex : surveillance simple / stabilisation légère / renforcement intermédiaire / réfection lourde), en indiquant pour chacune les implications (coût, intrusivité, durabilité). Conserve impérativement les dimensions ou sections techniques précises annoncées à l'oral pour chaque variante, même approximatives (ex : remplacement d'une poutre actuellement de l'ordre de 30x30 cm par une section de l'ordre de 40x40 cm) — ces chiffres sont souvent l'information la plus utile au client et ne doivent jamais être résumés ou supprimés au profit d'une description seulement qualitative.
+
+## Mentions nominatives des professionnels
+Chaque fois qu'un professionnel ou une entreprise est cité pendant la visite comme interlocuteur pour un lot de travaux (maçon, chauffagiste, couvreur, menuisier, fournisseur de matériaux…), le mentionner nommément dans la section correspondante du compte-rendu, avec sa localisation si elle a été donnée.
+
+## Autres points de vigilance rédactionnels
+- Rédaction en paragraphes liés et argumentés, pas en listes de phrases courtes juxtaposées, sauf pour énumérer des variantes graduées ou une liste de projets/lots où une liste à puces reste plus lisible.
+- Ton technique, factuel, mesuré, à la troisième personne ou en formulations impersonnelles (« il a été observé que… », « il apparaît que… », « il conviendra de… »). Pas de tournures commerciales ni emphatiques.
+- Toujours distinguer ce qui a été observé directement pendant la visite et ce qui a été rapporté par le client/propriétaire sans vérification directe (ex : un contrôle SPANC mentionné par le client doit être présenté comme « selon les informations communiquées », avec la précision que cela n'a pas fait l'objet d'une vérification directe).
+- Mettre en valeur les découvertes faites pendant la visite elle-même quand elles ont une portée pour le projet du client (ex : une partie de toiture non reprise alors qu'elle n'était pas visible depuis les pièces de vie) — expliquer explicitement en quoi elles sont importantes pour les décisions à venir du client, ne pas les noyer dans le reste du texte.
+- Quand plusieurs sujets techniques sont liés entre eux (ex : choix d'un système de chauffage par pompe à chaleur et nécessité de reprendre l'isolation de la couverture en amont), établir explicitement ce lien dans le texte plutôt que de traiter les sujets de façon cloisonnée.
+- Anticiper les conséquences indirectes d'une évolution du projet (ex : si la capacité d'accueil du bien augmente via l'aménagement des dépendances, vérifier la compatibilité des équipements existants comme l'assainissement, et recommander une consultation des organismes compétents si nécessaire).
+
+## Conclusion générale
+Rédiger une conclusion en plusieurs paragraphes de prose (pas une simple liste à puces de priorités) qui :
+- resitue le bien dans son contexte (bâti ancien, plusieurs campagnes de travaux successives) ;
+- rappelle que les désordres observés relèvent principalement du vieillissement naturel et de choix techniques antérieurs ;
+- précise si la visite a permis d'écarter un risque structurel immédiat ou un obstacle majeur au projet ;
+- rappelle les deux ou trois points les plus significatifs relevés pendant la visite, en particulier ceux qui ont une incidence directe sur les choix du client (ex : lien entre isolation de toiture et choix de chauffage) ;
+- conclut sur le potentiel global (patrimonial, architectural, fonctionnel) du bien.
+
+## À ne jamais faire
+- Ne jamais produire une synthèse courte ou un résumé allégé.
+- Ne jamais supprimer une hypothèse ou une variante évoquée à l'oral au prétexte de simplifier, y compris les variantes intermédiaires chiffrées.
+- Ne jamais affirmer une cause unique quand plusieurs causes ont été évoquées.
+- Ne jamais omettre la clause de cadrage précisant que l'avis est un avis technique visuel, non un rapport de bureau d'études.
+- Ne jamais transformer une information rapportée par le client en fait vérifié.
+- Ne jamais omettre un lot technique mentionné pendant la visite, même traité brièvement à l'oral (ex : condensation sur les menuiseries, ventilation) — chaque lot abordé doit apparaître avec son propre sous-titre.
+- Ne jamais regrouper le chauffage ou l'assainissement/aménagements extérieurs dans une section consacrée à un autre sujet — ce sont des sections indépendantes au même niveau que « MAISON PRINCIPALE » et « DÉPENDANCES ».
+- Ne jamais mentionner le prix d'acquisition ou les circonstances personnelles/familiales du client dans le compte-rendu.
+
+## Note sur l'entrée
+La transcription fournie en entrée est issue d'une dictée vocale : elle peut contenir des approximations de termes techniques (orthographe, mots mal transcrits). Il convient de les corriger silencieusement en t'appuyant sur le contexte du bâti ancien, sans signaler la correction dans le compte-rendu final.
+
+---
+INFORMATIONS SPÉCIFIQUES À CETTE VISITE :
+- Client : ${proj.clientName || 'Non spécifié'}
 - Date de visite : ${formattedDate}
-- Adresse du bien : ${proj.visitAddress || 'Non renseignÃ©e'}
+- Adresse du bien : ${proj.visitAddress || 'Non renseignée'}
 
-Voici les consignes spÃ©cifiques de l'utilisateur (orientations ou prioritÃ©s de rÃ©daction) que tu dois impÃ©rativement respecter :
-"${guidelines || 'Aucune consigne spÃ©cifique.'}"
+Consignes spécifiques de l'utilisateur :
+"${guidelines || 'Aucune consigne spécifique.'}"
 
-Voici la transcription brute et informelle de la note vocale enregistrÃ©e sur le site par le conseiller :
+Transcription brute de la note vocale :
 "${transcription}"
 
-RÃ¨gles de rÃ©daction impÃ©ratives (Style & Fond) :
-0. RESPECT STRICT DE LA TRANSCRIPTION (MOT POUR MOT) : Si l'utilisateur demande dans ses consignes (guidelines) de ne pas reformuler, de reprendre "mot pour mot", de "recopier", ou si la transcription fournie est dÃ©jÃ  structurÃ©e sous forme de compte-rendu rÃ©digÃ©, tu dois conserver la formulation, les phrases et le vocabulaire d'origine au maximum. Ne reformule pas le contenu ; contente-toi de le distribuer dans les blocs correspondants et de corriger uniquement les coquilles ou fautes d'orthographe Ã©videntes.
-1. TON ET STYLE (PAR DÃ‰FAUT) : Ã€ moins que la rÃ¨gle 0 ne s'applique, rÃ©dige un compte rendu de visite conseil professionnel, bienveillant, constructif et optimiste quant au potentiel du bÃ¢timent. Sois optimiste quant au potentiel de la bÃ¢tisse et rassurant pour les acquÃ©reurs/propriÃ©taires. Ã‰vite le ton trop froid, austÃ¨re, alarmiste ou de "diagnostiqueur" (style d'expertise rÃ©glementaire froide). Valorise le charme du bÃ¢ti ancien percheron tout en prodiguant des recommandations claires, pragmatiques et de restauration de patrimoine avec des termes professionnels.
-2. PARAGRAPHES AÃ‰RÃ‰S ET FLUIDES : RÃ©dige des phrases bien construites, professionnelles et complÃ¨tes. Pour que les textes restent parfaitement lisibles et aÃ©rÃ©s (pour Ã©viter l'effet "gros pavÃ© de texte compact"), divise tes explications en plusieurs petits paragraphes Ã  l'aide de sauts de ligne rÃ©guliers.
-3. FORMATAGE DES LISTES (TIRETS UNIQUEMENT) : Si tu as besoin d'Ã©numÃ©rer des points ou des recommandations, utilise exclusivement des tirets simples ("- ") suivis d'un seul espace en dÃ©but de ligne (ex: "- Texte"). Interdiction absolue d'utiliser tout autre caractÃ¨re de liste (comme des astÃ©risques "*", des puces de type emoji, des ronds "â€¢" ou des chiffres), et ne mets jamais plusieurs espaces ou tabulations aprÃ¨s le tiret.
-4. PROSCRIRE LE FORMATAGE MARKDOWN : Ne mets aucun mot en gras ou en italique avec des doubles astÃ©risques ** ou simples astÃ©risques *. RÃ©dige en texte brut simple. Toute prÃ©sence d'Ã©toiles est interdite car le texte brut est affichÃ© tel quel.
-5. PROFONDEUR TECHNIQUE ET EXPLICATIONS PHYSIQUES :
-   - HumiditÃ© : DÃ©tailler les phÃ©nomÃ¨nes physiques de capillaritÃ© et d'enfermement de l'humiditÃ© par des dalles bÃ©ton ou enduits ciment Ã©tanches, la nÃ©cessitÃ© de la perspirance des murs en moellons de pays, et prÃ©coniser leur dÃ©pose. Conseiller de conserver la chaudiÃ¨re fioul en service et de maintenir le bÃ¢timent chauffÃ© Ã  15Â°C en hiver pour lutter contre la condensation.
-   - Sols et Dalles : Expliquer l'utilitÃ© d'un hÃ©risson ventilÃ© sous une dalle en bÃ©ton de chaux respirante avec des revÃªtements compatibles comme la tomette ancienne ou le travertin sur lit de sable.
-   - Chauffage et Isolation : Conseiller d'isoler en chaux-chanvre par l'intÃ©rieur pour prÃ©server la respiration et l'inertie des murs (notamment sur la faÃ§ade nord la plus froide), et d'utiliser la laine de bois sur les rampants de toiture pour ses propriÃ©tÃ©s de dÃ©phasage thermique et de confort d'Ã©tÃ©, ou une solution mixte Ã©conomique combinant laine de bois entre chevrons et laine de verre dessous. Recommander TP Chauffage â€“ Ludovic TricotÃ© (TP Chauffage â€“ Saint-Cyr-la-RosiÃ¨re â€“ 06 79 67 44 07) et Guillaume Franchet (Berd'Huis â€“ 06 88 53 96 47).
-   - Charpentes : DÃ©tailler l'Ã©tat et les prÃ©conisations selon les bÃ¢timents citÃ©s dans la note vocale. Si le garage est mentionnÃ©, parler de la dÃ©formation/vrillage de la ferme principale sans danger de rupture imminente mais nÃ©cessitant une surveillance. Si la cidrerie est mentionnÃ©e, conseiller la dÃ©pose des solives du plancher en bauge dÃ©posÃ©, la pose de jambes de force sur les demi-fermes et la conservation de l'entrait. Si la dÃ©pendance d'entrÃ©e a son entrait exposÃ©, prÃ©coniser une protection provisoire ou un bardage bois rapide.
-   - Gestion des eaux : PrÃ©ciser que l'absence de gouttiÃ¨res est classique sur les faÃ§ades percheronnes pour mettre en valeur les corniches en briques, et que si des gouttiÃ¨res sont installÃ©es, il faut privilÃ©gier des gouttiÃ¨res nantaises intÃ©grÃ©es en couverture. PrÃ©coniser un dÃ©caissement du terrain sur 3 Ã  4 mÃ¨tres Ã  l'arriÃ¨re pour Ã©loigner les eaux de ruissellement et un drainage pÃ©riphÃ©rique si besoin.
-   - Assainissement : Si mentionnÃ©, estimer le besoin Ã  10 Ã‰quivalents-Habitants (EH) pour l'habitation et les gÃ®tes, et recommander de faire appel Ã  Karl Delozier d'AlenÃ§on pour l'Ã©tude de sol et de conception.
-5. CARNET D'ADRESSES ET LIENS : IntÃ©grer les professionnels recommandÃ©s citÃ©s ci-dessus (et SÃ©bastien Blanchet pour l'Ã©co-construction et l'isolation bio-sourcÃ©e). Proposer Ã©galement GÃ©oportail (https://www.geoportail.gouv.fr) et GÃ©orisques (https://www.georisques.gouv.fr) comme ressources documentaires.
-6. STRUCTURE ET TITRES DES BLOCS : Structure le rapport en gÃ©nÃ©rant les blocs appropriÃ©s parmi les thÃ¨mes suivants. Tu dois utiliser **exactement** la liste de titres ci-dessous pour les blocs crÃ©Ã©s (en majuscules) :
-   - 'intro' : OBJET DE LA VISITE
-   - 'presentation' : PRESENTATION GENERALE
-   - 'etat-general' : Ã‰TAT GÃ‰NÃ‰RAL DU BÃ‚TI
-   - 'patrimoine' : OBSERVATION PATRIMONIALE
-   - 'espaces' : ORGANISATION FUTURE DES ESPACES
-   - 'humidite' : HUMIDITÃ‰
-   - 'recommandations-humidite' : RECOMMANDATIONS RELATIVES Ã€ L'HUMIDITÃ‰
-   - 'sols' : SOLS ET DALLES
-   - 'isolation' : CHAUFFAGE ET ISOLATION
-   - 'maconnerie' : MAÃ‡ONNERIES ET ENDUITS
-   - 'charpente' : CHARPENTES
-   - 'couverture' : COUVERTURES
-   - 'ventilation' : VENTILATION
-   - 'cheminees' : CHEMINÃ‰ES
-   - 'eaux-pluviales' : GESTION DES EAUX PLUVIALES ET AMÃ‰NAGEMENTS EXTÃ‰RIEURS
-   - 'assainissement' : ASSAINISSEMENT
-   - 'conclusion' : CONCLUSION
-   - 'professionnels' : PROFESSIONNELS RECOMMANDES
-   - 'ressources' : RESSOURCES DOCUMENTAIRES
+---
+RÈGLES DE FORMATAGE TECHNIQUES OBLIGATOIRES POUR L'APPLICATION (NE PAS DÉROGER) :
+1. PARAGRAPHES AÉRÉS : Divise tes explications en plusieurs paragraphes avec des sauts de ligne réguliers.
+2. LISTES : Utilise exclusivement des tirets simples ("- ") suivis d'un seul espace en début de ligne.
+3. AUCUN FORMATAGE MARKDOWN : Pas d'astérisques (** ou *). Rédige en texte brut simple.
 
-Tu dois impÃ©rativement renvoyer le rÃ©sultat sous la forme d'un TABLEAU JSON (array), sans aucun autre texte ni balise markdown. Chaque Ã©lÃ©ment du tableau est un bloc avec les champs "id", "title", et "content" (paragraphes rÃ©digÃ©s avec sauts de ligne si besoin). Exemple de format attendu :
+Tu dois impérativement renvoyer le résultat sous la forme d'un TABLEAU JSON (array), sans aucun autre texte. Chaque élément du tableau est un bloc avec les champs "id", "title" (en majuscules, ex: CHAUFFAGE, MAISON PRINCIPALE - TOITURE, etc.), et "content" (paragraphes rédigés). Exemple de format attendu :
 [
-  { "id": "intro", "title": "OBJET DE LA VISITE", "content": "Dans le cadre d'un projet de rÃ©novation...\n\nLa visite conseil s'inscrit dans..." },
-  { "id": "presentation", "title": "PRESENTATION GENERALE", "content": "La ferme en L du milieu du dix-neuviÃ¨me siÃ¨cle...\n\nLe bÃ¢timent principal..." }
+  { "id": "intro", "title": "OBJET DE LA VISITE", "content": "..." },
+  { "id": "chauffage", "title": "CHAUFFAGE", "content": "..." }
 ]`;
 
     try {
@@ -1696,18 +1741,18 @@ Tu dois impÃ©rativement renvoyer le rÃ©sultat sous la forme d'un TABLEAU JSO
                         if (errData && errData.error && errData.error.message) errorMsg += ` - ${errData.error.message}`;
                     } catch (e) {}
                     lastError = new Error(errorMsg);
-                    console.warn(`Ã‰chec avec ${modelName} :`, errorMsg);
+                    console.warn(`Échec avec ${modelName} :`, errorMsg);
                 }
             } catch (err) {
                 lastError = err;
-                console.warn(`Erreur rÃ©seau avec ${modelName} :`, err.message);
+                console.warn(`Erreur réseau avec ${modelName} :`, err.message);
             }
         }
 
-        if (!success) throw lastError || new Error("Aucun modÃ¨le Gemini disponible n'a pu Ãªtre contactÃ©.");
+        if (!success) throw lastError || new Error("Aucun modèle Gemini disponible n'a pu être contacté.");
 
         if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-            throw new Error("RÃ©ponse de l'IA incomplÃ¨te ou vide.");
+            throw new Error("Réponse de l'IA incomplète ou vide.");
         }
 
         let jsonText = data.candidates[0].content.parts[0].text.trim();
@@ -1718,12 +1763,12 @@ Tu dois impÃ©rativement renvoyer le rÃ©sultat sous la forme d'un TABLEAU JSO
 
         const aiBlocks = JSON.parse(jsonText);
 
-        // Valider que la rÃ©ponse est bien un tableau
+        // Valider que la réponse est bien un tableau
         if (!Array.isArray(aiBlocks) || aiBlocks.length === 0) {
-            throw new Error("La rÃ©ponse de l'IA n'est pas au format tableau attendu.");
+            throw new Error("La réponse de l'IA n'est pas au format tableau attendu.");
         }
 
-        // Remplacer COMPLÃˆTEMENT les blocs du projet par ceux gÃ©nÃ©rÃ©s par l'IA
+        // Remplacer COMPLÈTEMENT les blocs du projet par ceux générés par l'IA
         proj.blocks = aiBlocks
             .filter(item => item.title && item.content && item.content.trim()) // Ignorer les blocs vides
             .map(item => ({
@@ -1734,10 +1779,10 @@ Tu dois impÃ©rativement renvoyer le rÃ©sultat sous la forme d'un TABLEAU JSO
             }));
 
         if (proj.blocks.length === 0) {
-            throw new Error("L'IA n'a gÃ©nÃ©rÃ© aucun bloc avec du contenu. VÃ©rifiez votre transcription.");
+            throw new Error("L'IA n'a généré aucun bloc avec du contenu. Vérifiez votre transcription.");
         }
 
-        // Mettre Ã  jour le bloc actif (pointer sur le premier bloc)
+        // Mettre à jour le bloc actif (pointer sur le premier bloc)
         appState.activeBlockId = proj.blocks[0].id;
 
         saveProjectsToLocalStorage();
@@ -1746,31 +1791,31 @@ Tu dois impÃ©rativement renvoyer le rÃ©sultat sous la forme d'un TABLEAU JSO
         updateLivePreview();
         switchTab('edit');
 
-        showToast(`Rapport structurÃ© par l'IA : ${proj.blocks.length} sections crÃ©Ã©es !`, 'success');
+        showToast(`Rapport structuré par l'IA : ${proj.blocks.length} sections créées !`, 'success');
 
     } catch (err) {
-        console.error("Erreur lors de la gÃ©nÃ©ration par IA", err);
-        alert(`Une erreur est survenue lors de l'appel Ã  l'IA Gemini.\n\nDÃ©tails : ${err.message}\n\nVeuillez vÃ©rifier votre connexion internet et la validitÃ© de votre clÃ© API.`);
-        showToast("Ã‰chec de la gÃ©nÃ©ration par IA", "error");
+        console.error("Erreur lors de la génération par IA", err);
+        alert(`Une erreur est survenue lors de l'appel à l'IA Gemini.\n\nDétails : ${err.message}\n\nVeuillez vérifier votre connexion internet et la validité de votre clé API.`);
+        showToast("Échec de la génération par IA", "error");
     } finally {
         if (loader) loader.classList.remove('active');
     }
 }
 
-/* Algorithme local alternatif de rÃ©partition si pas de connexion/pas de clÃ© API */
+/* Algorithme local alternatif de répartition si pas de connexion/pas de clé API */
 function autoDispatchFallback(proj) {
-    const formattedDate = proj.visitDate ? proj.visitDate.split('-').reverse().join('/') : 'Non renseignÃ©e';
+    const formattedDate = proj.visitDate ? proj.visitDate.split('-').reverse().join('/') : 'Non renseignée';
     const visitTypeLabel = proj.visitType === 'achat' ? 'visite conseil avant achat' : 'visite conseil avant travaux';
     const paragraphs = proj.transcription.split(/\n+/).filter(p => p.trim());
 
-    // CrÃ©er une structure dynamique basÃ©e sur les thÃ©matiques dÃ©tectÃ©es dans la transcription
+    // Créer une structure dynamique basée sur les thématiques détectées dans la transcription
     const themes = [
-        { key: 'toiture', title: 'Toiture et Charpente', keywords: ['toiture', 'charpente', 'ardoise', 'tuile', 'chevron', 'gouttiÃ¨re', 'infiltration', 'xylophage', 'faitage', 'zinc'] },
-        { key: 'maconnerie', title: 'Gros Å’uvre et MaÃ§onnerie', keywords: ['mur', 'fondation', 'fissure', 'pignon', 'plancher', 'dalle', 'poutre', 'solive', 'structure'] },
-        { key: 'facades', title: 'FaÃ§ades et Enduits', keywords: ['faÃ§ade', 'enduit', 'ciment', 'chaux', 'pierre', 'joint', 'rejointoiement', 'piquage'] },
-        { key: 'humidite', title: 'HumiditÃ© et Drainage', keywords: ['humiditÃ©', 'salpÃªtre', 'drain', 'capillaire', 'cave', 'condensation', 'moisissure', 'ruissellement'] },
-        { key: 'isolation', title: 'Isolation et Second Å’uvre', keywords: ['isolation', 'doublage', 'chanvre', 'laine', 'tomette', 'menuiserie', 'fenÃªtre'] },
-        { key: 'reseaux', title: 'RÃ©seaux et Ã‰quipements', keywords: ['Ã©lectricitÃ©', 'plomberie', 'chauffage', 'chaudiere', 'assainissement', 'fosse', 'spanc'] }
+        { key: 'toiture', title: 'Toiture et Charpente', keywords: ['toiture', 'charpente', 'ardoise', 'tuile', 'chevron', 'gouttière', 'infiltration', 'xylophage', 'faitage', 'zinc'] },
+        { key: 'maconnerie', title: 'Gros Œuvre et Maçonnerie', keywords: ['mur', 'fondation', 'fissure', 'pignon', 'plancher', 'dalle', 'poutre', 'solive', 'structure'] },
+        { key: 'facades', title: 'Façades et Enduits', keywords: ['façade', 'enduit', 'ciment', 'chaux', 'pierre', 'joint', 'rejointoiement', 'piquage'] },
+        { key: 'humidite', title: 'Humidité et Drainage', keywords: ['humidité', 'salpêtre', 'drain', 'capillaire', 'cave', 'condensation', 'moisissure', 'ruissellement'] },
+        { key: 'isolation', title: 'Isolation et Second Œuvre', keywords: ['isolation', 'doublage', 'chanvre', 'laine', 'tomette', 'menuiserie', 'fenêtre'] },
+        { key: 'reseaux', title: 'Réseaux et Équipements', keywords: ['électricité', 'plomberie', 'chauffage', 'chaudiere', 'assainissement', 'fosse', 'spanc'] }
     ];
 
     const blocksContent = {};
@@ -1790,12 +1835,12 @@ function autoDispatchFallback(proj) {
         }
     });
 
-    // Construire le tableau de blocs dynamiquement (seulement les thÃ©matiques avec du contenu)
+    // Construire le tableau de blocs dynamiquement (seulement les thématiques avec du contenu)
     const newBlocks = [
         {
             id: generateBlockId(),
             title: 'Introduction et Contexte',
-            content: `Visite conseil rÃ©alisÃ©e le ${formattedDate} Ã  l'adresse suivante : ${proj.visitAddress || 'Non renseignÃ©e'}.\n\nCette visite a Ã©tÃ© effectuÃ©e dans le cadre d'un projet de ${visitTypeLabel} pour le compte de ${proj.clientName || 'Non spÃ©cifiÃ©'}.`,
+            content: `Visite conseil réalisée le ${formattedDate} à l'adresse suivante : ${proj.visitAddress || 'Non renseignée'}.\n\nCette visite a été effectuée dans le cadre d'un projet de ${visitTypeLabel} pour le compte de ${proj.clientName || 'Non spécifié'}.`,
             status: 'done'
         }
     ];
@@ -1827,14 +1872,14 @@ function autoDispatchFallback(proj) {
     updateLivePreview();
 }
 
-/* Fonction globale pour replier/dÃ©plier les sections de la barre latÃ©rale */
+/* Fonction globale pour replier/déplier les sections de la barre latérale */
 window.toggleSidebarSection = function(containerId, arrowId) {
     const el = document.getElementById(containerId);
     const arrow = document.getElementById(arrowId);
     if (el) {
         const isHidden = el.style.display === 'none';
         if (isHidden) {
-            el.style.display = ''; // RÃ©tablit l'affichage par dÃ©faut (flex ou block)
+            el.style.display = ''; // Rétablit l'affichage par défaut (flex ou block)
             if (arrow) arrow.style.transform = 'rotate(0deg)';
         } else {
             el.style.display = 'none';
@@ -1857,26 +1902,26 @@ async function handleDownloadPdf() {
     const oldBtnText = btnDownload ? btnDownload.innerText : '';
     if (btnDownload) {
         btnDownload.disabled = true;
-        btnDownload.innerText = "â³ GÃ©nÃ©ration du PDF en cours...";
+        btnDownload.innerText = "⏳ Génération du PDF en cours...";
     }
 
     try {
         const previewElement = document.getElementById('document-preview-target');
         
-        // Ajouter une classe temporaire pour supprimer les espacements d'Ã©cran pendant la gÃ©nÃ©ration PDF
+        // Ajouter une classe temporaire pour supprimer les espacements d'écran pendant la génération PDF
         document.body.classList.add('pdf-exporting');
 
-        // Configuration compressÃ©e pour le PDF
+        // Configuration compressée pour le PDF
         const opt = {
             margin:       0,
             filename:     pdfFilename,
             pagebreak:    { mode: 'css' }, // Mode CSS pur pour respecter uniquement nos .document-sheet
-            image:        { type: 'jpeg', quality: 0.70 }, // QualitÃ© compressÃ©e (70%)
-            html2canvas:  { scale: 1.5, useCORS: true, logging: false }, // Ã‰chelle rÃ©duite (1.5)
+            image:        { type: 'jpeg', quality: 0.70 }, // Qualité compressée (70%)
+            html2canvas:  { scale: 1.5, useCORS: true, logging: false }, // Échelle réduite (1.5)
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
         
-        // GÃ©nÃ©rer et tÃ©lÃ©charger le PDF
+        // Générer et télécharger le PDF
         await html2pdf().from(previewElement).set(opt).save();
 
         // Retirer la classe temporaire
@@ -1887,7 +1932,7 @@ async function handleDownloadPdf() {
             btnDownload.innerText = oldBtnText;
         }
         
-        showToast("âœ… Le PDF a Ã©tÃ© tÃ©lÃ©chargÃ© avec succÃ¨s !", "success");
+        showToast("✅ Le PDF a été téléchargé avec succès !", "success");
 
     } catch (error) {
         document.body.classList.remove('pdf-exporting');
@@ -1895,9 +1940,9 @@ async function handleDownloadPdf() {
             btnDownload.disabled = false;
             btnDownload.innerText = oldBtnText;
         }
-        console.error("Erreur lors de la gÃ©nÃ©ration du PDF:", error);
-        alert("Erreur lors de la crÃ©ation du PDF :\n" + (error.message || error));
-        showToast("Ã‰chec du tÃ©lÃ©chargement", "error");
+        console.error("Erreur lors de la génération du PDF:", error);
+        alert("Erreur lors de la création du PDF :\n" + (error.message || error));
+        showToast("Échec du téléchargement", "error");
     }
 }
 
@@ -1905,13 +1950,13 @@ async function handleDownloadPdf() {
 function cleanContentFormatting(text) {
     if (!text) return '';
     
-    // 1. Remplacer les espaces multiples aprÃ¨s un tiret en dÃ©but de ligne par un seul espace
+    // 1. Remplacer les espaces multiples après un tiret en début de ligne par un seul espace
     let clean = text.replace(/(^|\n)\s*-\s+/g, '$1- ');
     
-    // 2. Supprimer les doubles astÃ©risques de gras markdown
+    // 2. Supprimer les doubles astérisques de gras markdown
     clean = clean.replace(/\*\*/g, '');
     
-    // 3. Supprimer les simples astÃ©risques de liste ou d'italique
+    // 3. Supprimer les simples astérisques de liste ou d'italique
     clean = clean.replace(/(^|\n)\s*\*\s+/g, '$1- ');
     clean = clean.replace(/\*/g, '');
     
@@ -1919,11 +1964,11 @@ function cleanContentFormatting(text) {
 }
 
 function formatAddressHTML(address) {
-    if (!address) return '<i>Non renseignÃ©e</i>';
+    if (!address) return '<i>Non renseignée</i>';
     
     let formatted = escapeHTML(address);
     
-    // DÃ©tecter un code postal Ã  5 chiffres (ex: 61260 Ceton) et forcer le saut de ligne juste avant
+    // Détecter un code postal à 5 chiffres (ex: 61260 Ceton) et forcer le saut de ligne juste avant
     const regex = /(?:\s*,\s*|\s*-\s*|\s+)(\d{5}(?:\s+[a-zA-Z\s-]+)?)$/;
     const match = formatted.match(regex);
     if (match) {
@@ -1937,7 +1982,7 @@ function formatAddressHTML(address) {
 function linkify(text) {
     if (!text) return '';
     
-    // Expression rÃ©guliÃ¨re pour capturer les URL (http, https, www)
+    // Expression régulière pour capturer les URL (http, https, www)
     const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
     
     return text.replace(urlRegex, function(url) {
@@ -1945,7 +1990,7 @@ function linkify(text) {
         if (!href.match(/^https?:\/\//i)) {
             href = 'https://' + href;
         }
-        // Nettoyer la ponctuation Ã  la fin de l'URL capturÃ©e
+        // Nettoyer la ponctuation à la fin de l'URL capturée
         let cleanUrl = url;
         let endChar = '';
         if (/[.,;)]$/.test(cleanUrl)) {
@@ -1958,7 +2003,7 @@ function linkify(text) {
 }
 
 
-// GÃ©nÃ©rer et tÃ©lÃ©charger le document Word (.docx)
+// Générer et télécharger le document Word (.docx)
 async function handleDownloadWord() {
     const proj = getActiveProject();
     if (!proj) {
@@ -1973,7 +2018,7 @@ async function handleDownloadWord() {
     const oldBtnText = btnDownload ? btnDownload.innerText : '';
     if (btnDownload) {
         btnDownload.disabled = true;
-        btnDownload.innerText = "â³ GÃ©nÃ©ration...";
+        btnDownload.innerText = "⏳ Génération...";
     }
 
     try {
@@ -2011,7 +2056,7 @@ async function handleDownloadWord() {
         `;
 
         if (typeof htmlDocx === 'undefined') {
-            throw new Error("La librairie html-docx-js n'a pas pu Ãªtre chargÃ©e.");
+            throw new Error("La librairie html-docx-js n'a pas pu être chargée.");
         }
 
         const converted = htmlDocx.asBlob(htmlContent);
@@ -2028,9 +2073,9 @@ async function handleDownloadWord() {
             window.URL.revokeObjectURL(url);
         }, 100);
 
-        showToast("Document Word tÃ©lÃ©chargÃ© !", "success");
+        showToast("Document Word téléchargé !", "success");
     } catch (error) {
-        console.error("Erreur gÃ©nÃ©ration Word", error);
+        console.error("Erreur génération Word", error);
         alert("Une erreur est survenue lors de la création du Word : " + error.message);
     } finally {
         if (btnDownload) {
@@ -2045,7 +2090,7 @@ async function readPdfFile(file) {
     
     try {
         if (!window.pdfjsLib) {
-            throw new Error("Librairie PDF.js non chargÃ©e");
+            throw new Error("Librairie PDF.js non chargée");
         }
         
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -2061,6 +2106,11 @@ async function readPdfFile(file) {
             fullText += pageText + "\n\n";
         }
 
+        if (!fullText.trim()) {
+            showToast("Le PDF ne contient pas de texte lisible (peut-être un document scanné).", "warning");
+            return;
+        }
+
         document.getElementById('transcription-textarea').value = fullText.trim();
         
         const proj = getActiveProject();
@@ -2069,10 +2119,17 @@ async function readPdfFile(file) {
             saveProjectsToLocalStorage();
             updateLivePreview();
         }
-        showToast("Fichier PDF importÃ© avec succÃ¨s !", "success");
+        showToast("Fichier PDF importé avec succès !", "success");
     } catch (error) {
         console.error("Erreur lecture PDF :", error);
         showToast("Erreur lors de la lecture du fichier PDF.", "error");
     }
 }
+
+
+
+
+
+
+
 

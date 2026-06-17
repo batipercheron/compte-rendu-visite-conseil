@@ -231,7 +231,7 @@ select.form-control {
     cursor: pointer;
     transition: var(--transition);
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     user-select: none;
 }
@@ -258,10 +258,10 @@ select.form-control {
 
 .block-title {
     font-weight: 500;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.75rem;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
 }
 
 .block-status {
@@ -281,16 +281,19 @@ select.form-control {
 .block-item.active .status-done { background-color: rgba(92,127,101,0.5); color: #fff; }
 
 .block-item-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.2rem;
     flex-shrink: 0;
+    margin-left: 0.5rem;
 }
 
 .block-item-btn {
     background: none;
     border: none;
     cursor: pointer;
-    padding: 0.2rem;
+    padding: 0.15rem;
+    font-size: 0.75rem;
     color: var(--color-text-light);
     border-radius: 4px;
     transition: var(--transition);
@@ -676,7 +679,7 @@ select.form-control {
     background-color: #ffffff; /* Fond blanc pur pour impression propre */
     width: 210mm; /* Largeur A4 */
     height: 297mm; /* Hauteur A4 fixe */
-    padding: 12mm 15mm 8mm 15mm; /* 12mm haut, 15mm côtés, 8mm bas */
+    padding: 12mm 25mm 15mm 25mm; /* 12mm haut, 25mm côtés, 15mm bas pour le pied de page */
     box-shadow: var(--shadow-lg), 0 20px 40px rgba(0, 0, 0, 0.3);
     border-radius: 2px;
     position: relative;
@@ -1475,7 +1478,7 @@ select.form-control {
         flex-direction: column !important;
         width: 210mm !important;
         height: 297mm !important;
-        padding: 12mm 15mm 8mm 15mm !important;
+        padding: 12mm 25mm 15mm 25mm !important;
         box-sizing: border-box !important;
         margin: 0 !important;
         box-shadow: none !important;
