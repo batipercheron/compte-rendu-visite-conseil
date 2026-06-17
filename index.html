@@ -16,6 +16,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
     <!-- Librairie de génération de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Librairie de génération de DOCX -->
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
+    <!-- Librairie de lecture de PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- Librairie d'envoi d'e-mail SMTPJS -->
     <script src="https://smtpjs.com/v3/smtp.js"></script>
 </head>
@@ -51,7 +55,10 @@
             <input type="file" id="file-import-input" accept=".json" style="display: none;">
             
             <button id="btn-download-pdf" class="btn btn-secondary btn-sm" title="Télécharger le compte rendu au format PDF">
-                📥 Télécharger
+                📄 PDF
+            </button>
+            <button id="btn-download-word" class="btn btn-secondary btn-sm" title="Télécharger le compte rendu au format Word (.docx)">
+                📝 Word
             </button>
             <button id="btn-print" class="btn btn-primary btn-sm" title="Imprimer le compte rendu (Ctrl+P)">
                 🖨️ Imprimer
@@ -233,8 +240,8 @@
                                     <span style="font-size:0.8rem; font-weight:600; color:var(--color-primary); text-transform:uppercase;">Transcription de la Note Vocale</span>
                                     <div style="display:flex; gap:0.5rem; align-items:center;">
                                         <!-- Import de fichier -->
-                                        <button class="btn-mic" id="btn-import-transcription-trigger" title="Importer un fichier Word (.docx) ou Texte (.txt)" type="button" style="width:24px; height:24px; font-size:0.8rem;">📂</button>
-                                        <input type="file" id="transcription-file-input" accept=".docx,.txt" style="display:none;">
+                                        <button class="btn-mic" id="btn-import-transcription-trigger" title="Importer un fichier Word (.docx), PDF (.pdf) ou Texte (.txt)" type="button" style="width:24px; height:24px; font-size:0.8rem;">📥</button>
+                                        <input type="file" id="transcription-file-input" accept=".docx,.txt,.pdf" style="display:none;">
                                     </div>
                                 </div>
                                 <textarea id="transcription-textarea" class="transcription-textarea" placeholder="Collez votre texte ou cliquez sur le bouton ci-dessus pour importer un document..."></textarea>
