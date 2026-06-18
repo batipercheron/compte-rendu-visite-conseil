@@ -272,13 +272,6 @@ select.form-control {
     width: fit-content;
 }
 
-.status-empty { background-color: #f1ebd9; color: var(--color-text-light); }
-.status-progress { background-color: #faebd7; color: var(--color-warning); }
-.status-done { background-color: #e2ede5; color: var(--color-success); }
-
-.block-item.active .status-empty { background-color: rgba(255,255,255,0.2); color: #fff; }
-.block-item.active .status-progress { background-color: rgba(244,180,26,0.3); color: #fff; }
-.block-item.active .status-done { background-color: rgba(92,127,101,0.5); color: #fff; }
 
 .block-item-actions {
     display: grid;
@@ -679,7 +672,7 @@ select.form-control {
     background-color: #ffffff; /* Fond blanc pur pour impression propre */
     width: 210mm; /* Largeur A4 */
     height: 297mm; /* Hauteur A4 fixe */
-    padding: 12mm 25mm 15mm 25mm; /* 12mm haut, 25mm côtés, 15mm bas pour le pied de page */
+    padding: 10mm 25mm 10mm 25mm; /* 10mm haut, 25mm côtés, 10mm bas */
     box-shadow: var(--shadow-lg), 0 20px 40px rgba(0, 0, 0, 0.3);
     border-radius: 2px;
     position: relative;
@@ -1471,6 +1464,7 @@ select.form-control {
         height: auto !important;
         margin: 0 !important;
         padding: 0 !important;
+        zoom: 1 !important; /* Désactive le zoom container-query à l'impression papier */
     }
 
     .document-sheet {
@@ -1478,7 +1472,7 @@ select.form-control {
         flex-direction: column !important;
         width: 210mm !important;
         height: 297mm !important;
-        padding: 12mm 25mm 15mm 25mm !important;
+        padding: 10mm 25mm 10mm 25mm !important;
         box-sizing: border-box !important;
         margin: 0 !important;
         box-shadow: none !important;
@@ -1488,6 +1482,9 @@ select.form-control {
         overflow: hidden !important;
         position: relative !important;
         gap: 10mm !important; /* Maintient l'espace de sécurité entre le contenu et le pied de page */
+    }
+
+    .document-sheet:not(:last-child) {
         page-break-after: always !important;
         break-after: page !important;
     }
@@ -1543,7 +1540,12 @@ body.pdf-exporting .document-sheet {
     border-radius: 0 !important;
     margin: 0 !important;
     border: none !important;
-    /* page-break-after est géré par jsPDF/html2pdf */
+    height: 296mm !important; /* Hauteur très légèrement réduite pour éviter le double saut de page sous html2pdf */
+}
+
+body.pdf-exporting .document-sheet:not(:last-child) {
+    page-break-after: always !important;
+    break-after: page !important;
 }
 
 body.pdf-exporting .doc-section,
