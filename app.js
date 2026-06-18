@@ -1893,11 +1893,11 @@ async function handleDownloadPdf() {
         // Ajouter une classe temporaire pour supprimer les espacements d'écran pendant la génération PDF
         document.body.classList.add('pdf-exporting');
 
-        // Forcer la largeur exacte A4 pour un rendu identique sur tous les OS (fix Mac/Safari)
-        // Sur Mac, les scrollbars sont en overlay (0px), donc le parent est plus large qu'attendu
-        // et html2canvas capture une canvas trop large → le texte dépasse dans le PDF.
-        const originalWidth = previewElement.style.width;
-        previewElement.style.width = '210mm';
+        // Fix cross-platform (Mac/Safari) : les container queries peuvent laisser un zoom réduit
+        // sur l'élément même avec body.pdf-exporting. Le style inline a la priorité absolue.
+        previewElement.style.setProperty('zoom', '1', 'important');
+        previewElement.style.setProperty('width', '210mm', 'important');
+        void previewElement.offsetWidth; // Force recalcul layout avant capture
 
         // Configuration haute qualité pour le PDF (scale 2.0, quality 0.95)
         const opt = {
@@ -1905,7 +1905,7 @@ async function handleDownloadPdf() {
             filename:     pdfFilename,
             pagebreak:    { mode: 'css' }, // Mode CSS pur pour respecter uniquement nos .document-sheet
             image:        { type: 'jpeg', quality: 0.95 }, // Qualité (95%)
-            html2canvas:  { scale: 2.0, useCORS: true, logging: false, windowWidth: 794, scrollX: 0, scrollY: 0 }, // windowWidth=794px (=210mm à 96dpi) pour cohérence cross-platform
+            html2canvas:  { scale: 2.0, useCORS: true, logging: false }, // Échelle 2.0 pour netteté parfaite
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
@@ -1913,7 +1913,8 @@ async function handleDownloadPdf() {
         await html2pdf().from(previewElement).set(opt).save();
 
         // Retirer la classe temporaire et restaurer le src du logo
-        previewElement.style.width = originalWidth;
+        previewElement.style.removeProperty('zoom');
+        previewElement.style.removeProperty('width');
         document.body.classList.remove('pdf-exporting');
         const logoImgsRestore = previewElement.querySelectorAll('.doc-logo-img');
         logoImgsRestore.forEach(img => { img.src = 'logo-horizontal.jpg'; });
@@ -1933,6 +1934,8 @@ async function handleDownloadPdf() {
             logoImgs.forEach(img => {
                 img.src = 'logo-horizontal.jpg';
             });
+            previewEl.style.removeProperty('zoom');
+            previewEl.style.removeProperty('width');
         }
         document.body.classList.remove('pdf-exporting');
         if (btnDownload) {
